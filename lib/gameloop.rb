@@ -1,5 +1,8 @@
+require_relative "chessboard"
+
 module Gameloop
   def play
-    p "hello world"
+    gameboard = Chessboard.new
+    gameboard.print_board
   end
 end
