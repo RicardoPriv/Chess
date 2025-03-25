@@ -1,9 +1,11 @@
 # class Chessboard
 
 require_relative "chesspieces"
+require_relative "chessmovements"
 require "colorize"
 
 include Chesspieces
+include Chessmovements
 
 class Chessboard
   DIMENSION = 8
@@ -33,19 +35,61 @@ class Chessboard
     return @board
   end
 
+  # takes the tile (eg: A1) and retrieves the piece hash at that position on the board
+  def get_piece(tile)
+    row = get_board[tile[1].to_i - 1]
+    return row[tile[0].ord % 65]
+  end
+
+  def valid_piece?(player, tile)
+    piece = get_piece(tile)
+    return true if piece[:color] == player
+  end
+
+  def valid_moves(player, tile)
+    return nil unless valid_piece?(player, tile)
+    piece = get_piece(tile)
+    
+    case piece[:type]
+    when :pawn
+      Chessmovements.pawn_moves(tile, get_board, player)
+    when :rook
+
+    when :knight
+    
+    when :bishop
+
+    when :queen
+
+    when :king
+
+    else
+      return nil
+    end
+  end
+
+  def winner?
+    winner = nil
+
+    
+    return winner
+  end
+
   def print_board
     board = get_board.reverse
-    board.each do |row|
-      print "-----------------\n|"
+    board.each_with_index do |row, i|
+      print "    -----------------\n"
+      print("#{DIMENSION - i}|  |")
       row.each_with_index do |cell, i|
-        print colorize_symbol(cell[:symbol], cell[:color]) + "|"
+        print(colorize_symbol!(cell[:symbol], cell[:color]) + "|")
       end
       print "\n"
     end 
-    print("-----------------\n")
+    print("    -----------------\n")
+    print("\n    |A|B|C|D|E|F|G|H|\n")
   end
 
-  def colorize_symbol(symbol, color)
+  def colorize_symbol!(symbol, color)
     case color
     when :white then "\e[37m#{symbol}\e[0m" # White
     when :black then "\e[30m#{symbol}\e[0m" # Black
