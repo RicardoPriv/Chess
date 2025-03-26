@@ -53,36 +53,8 @@ module Chessmovements
 
   # Vertical and Horixontal movement of the rook piece
   def rook_moves(tile, board, player)
-    possible_moves = Array.new
     directions = [[1, 0], [-1, 0], [0, 1], [0, -1]]
-
-    # Movement for the cardinal directions
-    directions.each do |dir|
-      coordinate = tile_to_coordinate(tile).dup
-
-      # Walks through the path and adds valid tiles
-      (1..7).each do
-        coordinate[0] += dir[0]
-        coordinate[1] += dir[1]
-          
-        # Ends loop if tile is out of bounds
-        break unless valid_tile?(coordinate_to_tile(coordinate))
-
-        # Ends loop if there is a piece on the current tile and adds if it is the opponents piece
-        unless board[coordinate[1] - 1][coordinate[0]][:type] == :empty
-          possible_moves.push(coordinate.dup) if opponent_piece?([coordinate[1] - 1, coordinate[0]], player, board)
-          break
-        end
-
-        possible_moves.push(coordinate.dup)
-      end
-    end
-
-    possible_moves.each_with_index do |i, index|
-      possible_moves[index] = coordinate_to_tile(i)
-    end
-
-    return possible_moves
+    return straight_movement(directions, tile, board, player)
   end
 
   def knight_moves(tile)
@@ -91,10 +63,23 @@ module Chessmovements
 
   # Diagonal movement of the bishop piece
   def bishop_moves(tile, board, player)
-    possible_moves = Array.new
     directions = [[1, 1], [1, -1], [-1, -1], [-1, 1]]
+    return straight_movement(directions, tile, board, player)
+  end
 
-    # Movement for the four diagonal directions
+  def queen_moves(tile, board, player)
+    directions = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, -1], [-1, 1]]
+    return straight_movement(directions, tile, board, player)
+  end
+
+  def king_moves(tile)
+
+  end
+
+  def straight_movement(directions, tile, board, player)
+    possible_moves = Array.new
+
+    # Movement for the given directions
     directions.each do |dir|
       coordinate = tile_to_coordinate(tile)
 
@@ -116,16 +101,11 @@ module Chessmovements
       end
     end
 
+    # Converts piece coordinates back to Chess standard tiles
     possible_moves.each_with_index do |i, index|
       possible_moves[index] = coordinate_to_tile(i)
     end
-  end
 
-  def queen_moves(tile)
-
-  end
-
-  def king_moves(tile)
-
+    return possible_moves
   end
 end

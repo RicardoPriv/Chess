@@ -71,7 +71,7 @@ class Chessboard
     when :bishop
       Chessmovements.bishop_moves(tile, get_board, player)
     when :queen
-
+      Chessmovements.queen_moves(tile, get_board, player)
     when :king
 
     else

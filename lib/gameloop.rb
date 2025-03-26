@@ -14,16 +14,17 @@ module Gameloop
       { type: :king, color: :white, position: [7, 4], symbol: Chesspieces::PIECES[:king] },
       { type: :rook, color: :white, position: [7, 0], symbol: Chesspieces::PIECES[:rook] },
       { type: :rook, color: :white, position: [5, 5], symbol: Chesspieces::PIECES[:rook] },
+      { type: :bishop, color: :white, position: [5, 7], symbol: Chesspieces::PIECES[:bishop] },
       { type: :bishop, color: :white, position: [4, 2], symbol: Chesspieces::PIECES[:bishop] },
       { type: :knight, color: :white, position: [3, 6], symbol: Chesspieces::PIECES[:knight] },
       { type: :pawn, color: :white, position: [4, 4], symbol: Chesspieces::PIECES[:pawn] },
       { type: :pawn, color: :white, position: [6, 3], symbol: Chesspieces::PIECES[:pawn] },
+      { type: :queen, color: :white, position: [5, 1], symbol: Chesspieces::PIECES[:queen] },
 
       # Black pieces
       { type: :king, color: :black, position: [0, 4], symbol: Chesspieces::PIECES[:king] },
       { type: :queen, color: :black, position: [2, 3], symbol: Chesspieces::PIECES[:queen] },
       { type: :rook, color: :black, position: [0, 7], symbol: Chesspieces::PIECES[:rook] },
-      { type: :bishop, color: :white, position: [5, 7], symbol: Chesspieces::PIECES[:bishop] },
       { type: :bishop, color: :black, position: [1, 2], symbol: Chesspieces::PIECES[:bishop] },
       { type: :knight, color: :black, position: [2, 6], symbol: Chesspieces::PIECES[:knight] },
       { type: :pawn, color: :black, position: [3, 4], symbol: Chesspieces::PIECES[:pawn] },
@@ -33,11 +34,11 @@ module Gameloop
     gameboard.set_board(custom_pieces)
     gameboard.print_board
 
-    #p gameboard.valid_moves(:white, "H6")
+    p gameboard.valid_moves(:white, "B6")
     p "---"
-    #p gameboard.valid_moves(:white, "C5")
+    p gameboard.valid_moves(:black, "D3")
     p "---"
-    #p gameboard.valid_moves(:black, "C2")
+    #p gameboard.valid_moves(:black, "H1")
     return
     while gameboard.winner?.nil?
       input = get_input("Get input hehe")
