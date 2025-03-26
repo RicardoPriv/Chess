@@ -1,6 +1,6 @@
 module Chesspieces
   PIECES = {
-    empty: " ",
+    empty: nil,
     pawn: 'P',
     rook: 'R',
     knight: 'N',

@@ -35,6 +35,17 @@ class Chessboard
     return @board
   end
 
+  def set_board(custom_pieces = [])
+    p "test"
+    @board = Array.new(DIMENSION) { |i| Array.new(DIMENSION) { |j| piece_hash(:empty, nil, i, j) } }
+  
+    custom_pieces.each do |piece|
+      row, col = piece[:position]
+      @board[row][col] = piece
+    end
+    p "\n\n"
+  end
+  
   # takes the tile (eg: A1) and retrieves the piece hash at that position on the board
   def get_piece(tile)
     row = get_board[tile[1].to_i - 1]
@@ -54,7 +65,7 @@ class Chessboard
     when :pawn
       Chessmovements.pawn_moves(tile, get_board, player)
     when :rook
-
+      Chessmovements.rook_moves(tile, get_board, player)
     when :knight
     
     when :bishop
@@ -81,7 +92,11 @@ class Chessboard
       print "    -----------------\n"
       print("#{DIMENSION - i}|  |")
       row.each_with_index do |cell, i|
-        print(colorize_symbol!(cell[:symbol], cell[:color]) + "|")
+        if cell[:symbol].nil?
+          print(" |")
+        else
+          print(colorize_symbol!(cell[:symbol], cell[:color]) + "|")
+        end
       end
       print "\n"
     end 
