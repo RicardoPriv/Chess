@@ -57,8 +57,9 @@ module Chessmovements
     return straight_movement(directions, tile, board, player)
   end
 
-  def knight_moves(tile)
-
+  def knight_moves(tile, board, player)
+    directions = [[2, 1], [-2, 1], [2, -1], [-2, -1], [1, 2], [-1, 2], [1, -2], [-1, -2]]
+    return coordinate_movement(directions, tile, board, player)
   end
 
   # Diagonal movement of the bishop piece
@@ -72,8 +73,19 @@ module Chessmovements
     return straight_movement(directions, tile, board, player)
   end
 
-  def king_moves(tile)
+  # Movement for King / positions surrounding current tile
+  def king_moves(tile, board, player)
+    directions = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, -1], [-1, 1]]
+    return coordinate_movement(directions, tile, board, player)
+  end
 
+  # Converts and array of coordinates to their Chess tiles
+  def array_coordinates_to_tiles(coordinates)
+    tiles = Array.new
+    coordinates.each do |i|
+      tiles.push(coordinate_to_tile(i).dup)
+    end
+    return tiles
   end
 
   def straight_movement(directions, tile, board, player)
@@ -102,10 +114,30 @@ module Chessmovements
     end
 
     # Converts piece coordinates back to Chess standard tiles
-    possible_moves.each_with_index do |i, index|
-      possible_moves[index] = coordinate_to_tile(i)
+    return array_coordinates_to_tiles(possible_moves)
+  end
+
+  # Given x coordinates, checks if the movements (tile + coordinate) are valid and returns valid movements
+  def coordinate_movement(directions, tile, board, player)
+    possible_moves = Array.new
+
+    directions.each do |dir|
+      coordinate = tile_to_coordinate(tile)
+      coordinate[0] += dir[0]
+      coordinate[1] += dir[1]
+
+      # Continues to next iteration if tile is out of bounds
+      next unless valid_tile?(coordinate_to_tile(coordinate))
+
+      # Continues to next iteration if there is a piece on the current tile and adds if it is the opponents piece
+      unless board[coordinate[1] - 1][coordinate[0]][:type] == :empty
+        possible_moves.push(coordinate.dup) if opponent_piece?([coordinate[1] - 1, coordinate[0]], player, board)
+        next
+      end
+
+      possible_moves.push(coordinate.dup)
     end
 
-    return possible_moves
+    return array_coordinates_to_tiles(possible_moves)
   end
 end

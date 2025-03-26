@@ -67,13 +67,13 @@ class Chessboard
     when :rook
       Chessmovements.rook_moves(tile, get_board, player)
     when :knight
-    
+      Chessmovements.knight_moves(tile, get_board, player)
     when :bishop
       Chessmovements.bishop_moves(tile, get_board, player)
     when :queen
       Chessmovements.queen_moves(tile, get_board, player)
     when :king
-
+      Chessmovements.king_moves(tile, get_board, player)
     else
       return nil
     end

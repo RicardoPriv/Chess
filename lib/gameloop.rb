@@ -27,6 +27,7 @@ module Gameloop
       { type: :rook, color: :black, position: [0, 7], symbol: Chesspieces::PIECES[:rook] },
       { type: :bishop, color: :black, position: [1, 2], symbol: Chesspieces::PIECES[:bishop] },
       { type: :knight, color: :black, position: [2, 6], symbol: Chesspieces::PIECES[:knight] },
+      { type: :knight, color: :black, position: [1, 1], symbol: Chesspieces::PIECES[:knight] },
       { type: :pawn, color: :black, position: [3, 4], symbol: Chesspieces::PIECES[:pawn] },
       { type: :pawn, color: :black, position: [1, 5], symbol: Chesspieces::PIECES[:pawn] }
     ]
@@ -34,11 +35,11 @@ module Gameloop
     gameboard.set_board(custom_pieces)
     gameboard.print_board
 
-    p gameboard.valid_moves(:white, "B6")
+    #p gameboard.valid_moves(:white, "H6")
     p "---"
-    p gameboard.valid_moves(:black, "D3")
+    p gameboard.valid_moves(:black, "H1")
     p "---"
-    #p gameboard.valid_moves(:black, "H1")
+    #p gameboard.valid_moves(:black, "D3")
     return
     while gameboard.winner?.nil?
       input = get_input("Get input hehe")
