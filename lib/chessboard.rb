@@ -69,7 +69,7 @@ class Chessboard
     when :knight
     
     when :bishop
-
+      Chessmovements.bishop_moves(tile, get_board, player)
     when :queen
 
     when :king

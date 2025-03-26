@@ -3,7 +3,7 @@ module Chessmovements
   def valid_tile?(tile)
     row = tile[0].ord - 65
     col = tile[1].to_i
-    return true if (row >= 0 and row <= 8) and (col >= 0 and col <= 8)
+    return true if (row >= 0 and row < 8) and (col > 0 and col <= 8)
     return false
   end
 
@@ -54,37 +54,30 @@ module Chessmovements
   # Vertical and Horixontal movement of the rook piece
   def rook_moves(tile, board, player)
     possible_moves = Array.new
-    coordinate = tile_to_coordinate(tile).dup
+    directions = [[1, 0], [-1, 0], [0, 1], [0, -1]]
 
-    # Vertical movements
-    (1..7).each do
-      coordinate[1] += 1
-      # Checks if out of bounds
-      break unless valid_tile?(coordinate_to_tile(coordinate))
+    # Movement for the cardinal directions
+    directions.each do |dir|
+      coordinate = tile_to_coordinate(tile).dup
 
-      # Checks for pieces in the middle of path
-      # -1 for aligning the coordinate format (col starts at 1) with the board formate (col starts at 0)
-      unless board[coordinate[1] - 1][coordinate[0]][:type] == :empty
-        possible_moves.push(coordinate.dup) if opponent_piece?([coordinate[1] - 1, coordinate[0]], player, board)
-        break
+      # Walks through the path and adds valid tiles
+      (1..7).each do
+        coordinate[0] += dir[0]
+        coordinate[1] += dir[1]
+          
+        # Ends loop if tile is out of bounds
+        break unless valid_tile?(coordinate_to_tile(coordinate))
+
+        # Ends loop if there is a piece on the current tile and adds if it is the opponents piece
+        unless board[coordinate[1] - 1][coordinate[0]][:type] == :empty
+          possible_moves.push(coordinate.dup) if opponent_piece?([coordinate[1] - 1, coordinate[0]], player, board)
+          break
+        end
+
+        possible_moves.push(coordinate.dup)
       end
-
-      possible_moves.push(coordinate.dup)
     end
 
-    coordinate = tile_to_coordinate(tile).dup
-    (1..7).each do |i|
-      coordinate[0] -= 1
-      p coordinate
-      break unless valid_tile?(coordinate_to_tile(coordinate))
-      break unless board[coordinate[1] - 1][coordinate[0]][:symbol].nil?
-
-      possible_moves.push(coordinate.dup)
-    end
-
-    # Horizontal movements
-
-    #possible_moves.push(coordinate)
     possible_moves.each_with_index do |i, index|
       possible_moves[index] = coordinate_to_tile(i)
     end
@@ -96,8 +89,36 @@ module Chessmovements
 
   end
 
-  def bishop_moves(tile)
+  # Diagonal movement of the bishop piece
+  def bishop_moves(tile, board, player)
+    possible_moves = Array.new
+    directions = [[1, 1], [1, -1], [-1, -1], [-1, 1]]
 
+    # Movement for the four diagonal directions
+    directions.each do |dir|
+      coordinate = tile_to_coordinate(tile)
+
+      # Walks through the path and adds valid tiles
+      (0..7).each do
+        coordinate[0] += dir[0]
+        coordinate[1] += dir[1]
+
+        # Ends loop if tile is out of bounds
+        break unless valid_tile?(coordinate_to_tile(coordinate))
+
+        # Ends loop if there is a piece on the current tile and adds if it is the opponents piece
+        unless board[coordinate[1] - 1][coordinate[0]][:type] == :empty
+          possible_moves.push(coordinate.dup) if opponent_piece?([coordinate[1] - 1, coordinate[0]], player, board)
+          break
+        end
+
+        possible_moves.push(coordinate.dup)
+      end
+    end
+
+    possible_moves.each_with_index do |i, index|
+      possible_moves[index] = coordinate_to_tile(i)
+    end
   end
 
   def queen_moves(tile)

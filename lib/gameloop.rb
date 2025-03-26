@@ -33,9 +33,11 @@ module Gameloop
     gameboard.set_board(custom_pieces)
     gameboard.print_board
 
-    p gameboard.valid_moves(:white, "F6")
+    #p gameboard.valid_moves(:white, "H6")
     p "---"
-    p gameboard.valid_moves(:black, "H1")
+    #p gameboard.valid_moves(:white, "C5")
+    p "---"
+    #p gameboard.valid_moves(:black, "C2")
     return
     while gameboard.winner?.nil?
       input = get_input("Get input hehe")
