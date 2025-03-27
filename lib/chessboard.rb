@@ -8,6 +8,7 @@ include Chesspieces
 include Chessmovements
 
 class Chessboard
+  MOVEABLE_COLOR = :yellow
   DIMENSION = 8
 
   def initialize
@@ -59,8 +60,8 @@ class Chessboard
 
   def valid_moves(player, tile)
     return nil unless valid_piece?(player, tile)
+
     piece = get_piece(tile)
-    
     case piece[:type]
     when :pawn
       Chessmovements.pawn_moves(tile, get_board, player)
@@ -74,9 +75,26 @@ class Chessboard
       Chessmovements.queen_moves(tile, get_board, player)
     when :king
       Chessmovements.king_moves(tile, get_board, player)
-    else
-      return nil
     end
+  end
+
+  def move_piece(tile_move_from, tile_move_to, player)
+    board = get_board
+    coord_from = [tile_move_from[1].to_i - 1, tile_move_from[0].ord - 65]
+    coord_to = [tile_move_to[1].to_i - 1, tile_move_to[0].ord - 65]
+
+    original_tile = board[coord_to[0]][coord_to[1]].dup
+    board[coord_to[0]][coord_to[1]] = board[coord_from[0]][coord_from[1]].dup
+    board[coord_from[0]][coord_from[1]] = {
+      type: :empty,
+      symbol: Chesspieces::PIECES[:empty],
+      color: nil,
+      position: coord_from
+    }
+
+    return original_tile[:type] if original_tile[:type] != :movement
+
+    nil
   end
 
   def winner?
@@ -84,6 +102,44 @@ class Chessboard
 
     
     return winner
+  end
+
+  def add_possible_moves_colors(possible_moves)
+    board = get_board
+    possible_moves.each do |move|
+      coord = [move[1].to_i - 1, move[0].ord - 65]
+      if board[coord[0]][coord[1]][:type].eql?(:empty)
+        cell = {
+          type: :movement,
+          symbol: Chesspieces::POSSIBLE_MOVE,
+          color: MOVEABLE_COLOR,
+          position: coord
+        }
+      else
+        cell = board[coord[0]][coord[1]]
+        cell[:color] = MOVEABLE_COLOR
+      end
+      board[coord[0]][coord[1]] = cell
+    end
+  end
+
+  def revert_possible_moves_colors(possible_moves, player)
+    board = get_board
+    color = player == :white ? :black : :white
+
+    possible_moves.each do |move|
+      coord = [move[1].to_i - 1, move[0].ord - 65]
+      if board[coord[0]][coord[1]][:type] == :movement
+        board[coord[0]][coord[1]] = {
+          type: :empty,
+          symbol: Chesspieces::PIECES[:empty],
+          color: nil,
+          position: coord
+        }
+      else
+        board[coord[0]][coord[1]][:color] = color
+      end
+    end
   end
 
   def print_board
@@ -108,6 +164,10 @@ class Chessboard
     case color
     when :white then "\e[37m#{symbol}\e[0m" # White
     when :black then "\e[30m#{symbol}\e[0m" # Black
+    when :red then "\e[31m#{symbol}\e[0m" # Red 
+    when :green then "\e[32m#{symbol}\e[0m"  # Green
+    when :yellow then "\e[33m#{symbol}\e[0m" # Yellow
+
     else symbol
     end
   end  

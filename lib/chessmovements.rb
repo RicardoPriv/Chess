@@ -3,7 +3,7 @@ module Chessmovements
   def valid_tile?(tile)
     row = tile[0].ord - 65
     col = tile[1].to_i
-    return true if (row >= 0 and row < 8) and (col > 0 and col <= 8)
+    return true if (row >= 0 and row < 8) and (col >= 1 and col < 9)
     return false
   end
 
@@ -19,7 +19,7 @@ module Chessmovements
 
   # checks at the given position on the board if there is a piece of the opposing player (opponent of given player)
   def opponent_piece?(coordinate, player, board)
-    return false unless valid_tile?(coordinate_to_tile(coordinate))
+    return false unless valid_tile?(coordinate_to_tile([coordinate[1], coordinate[0]]))
 
     row = board[coordinate[0]]
     cell = row[coordinate[1]]
@@ -96,10 +96,9 @@ module Chessmovements
       coordinate = tile_to_coordinate(tile)
 
       # Walks through the path and adds valid tiles
-      (0..7).each do
+      8.times do
         coordinate[0] += dir[0]
         coordinate[1] += dir[1]
-
         # Ends loop if tile is out of bounds
         break unless valid_tile?(coordinate_to_tile(coordinate))
 

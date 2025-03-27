@@ -8,4 +8,6 @@ module Chesspieces
     queen: 'Q',
     king: 'K'
 }.freeze
+
+  POSSIBLE_MOVE = "+"
 end
