@@ -1,52 +1,56 @@
-# class Chessboard
-
-require_relative "chesspieces"
-require_relative "chessmovements"
 require "colorize"
+require_relative "./pieces/rook.rb"
 
-include Chesspieces
-include Chessmovements
+Dir["#{__dir__}/pieces/*.rb"].each { |file| require_relative file }
 
-class Chessboard
+# Class that handles chessboard logic
+class Board
+  attr_accessor :board
+
   MOVEABLE_COLOR = :yellow
   DIMENSION = 8
 
   def initialize
-    @board = Array.new(DIMENSION) { Array.new(DIMENSION) }
+    self.board = Array.new(DIMENSION) { Array.new(DIMENSION) { Blank.new } }
     setup_board
   end
 
   def setup_board
-    back_row_types = [:rook, :knight, :bishop, :queen, :king, :bishop, :knight, :rook]
+    board[0] = [Rook.new(:white), Knight.new(:white), Bishop.new(:white), Queen.new(:white),
+                King.new(:white), Bishop.new(:white), Knight.new(:white), Rook.new(:white)]
+    board[1] = Array.new(DIMENSION) { Pawn.new(:white) }
 
-    @board[0] = back_row_types.map.with_index { |type, i| piece_hash(type, :white, 0, i) }
-    @board[1] = Array.new(DIMENSION) { |i| piece_hash(:pawn, :white, 1, i) }
-
-    (2..5).each { |i| @board[i] = Array.new(DIMENSION) { |j| piece_hash(:empty, nil, i, j) } }
-
-    @board[6] = Array.new(DIMENSION) { |i| piece_hash(:pawn, :black, 6, i) }
-    @board[7] = back_row_types.map.with_index { |type, i| piece_hash(type, :black, 7, i) }
+    board[6] = Array.new(DIMENSION) { Pawn.new(:black) }
+    board[7] = [Rook.new(:black), Knight.new(:black), Bishop.new(:black), Queen.new(:black),
+                King.new(:black), Bishop.new(:black), Knight.new(:black), Rook.new(:black)]
   end
 
-  def piece_hash(type, color, row, col)
-    return { type: type, symbol: Chesspieces::PIECES[type], color: color, position: [row, col] }
-  end
-
-  def get_board
-    return @board
-  end
-
+  # Set up the board with piece objects (Rook, Knight, Pawn, etc.)
   def set_board(custom_pieces = [])
-    p "test"
-    @board = Array.new(DIMENSION) { |i| Array.new(DIMENSION) { |j| piece_hash(:empty, nil, i, j) } }
-  
+    p "Setting up the board..."
+    @board = Array.new(DIMENSION) { |i| Array.new(DIMENSION) { Blank.new } }
+
+    # Place custom pieces on the board
     custom_pieces.each do |piece|
       row, col = piece[:position]
-      @board[row][col] = piece
+      piece_obj = case piece[:type]
+                  when :rook then Rook.new(piece[:color])
+                  when :knight then Knight.new(piece[:color])
+                  when :bishop then Bishop.new(piece[:color])
+                  when :queen then Queen.new(piece[:color])
+                  when :king then King.new(piece[:color])
+                  when :pawn then Pawn.new(piece[:color])
+                  else nil
+                  end
+      if piece_obj
+        @board[row][col] = piece_obj
+      end
     end
-    p "\n\n"
+    p "Board setup complete."
+    p @board
   end
-  
+
+=begin
   # takes the tile (eg: A1) and retrieves the piece hash at that position on the board
   def get_piece(tile)
     row = get_board[tile[1].to_i - 1]
@@ -100,7 +104,6 @@ class Chessboard
   def winner?
     winner = nil
 
-    
     return winner
   end
 
@@ -141,21 +144,21 @@ class Chessboard
       end
     end
   end
-
+=end
   def print_board
-    board = get_board.reverse
+    board = self.board.reverse.dup
     board.each_with_index do |row, i|
       print "    -----------------\n"
       print("#{DIMENSION - i}|  |")
       row.each_with_index do |cell, i|
-        if cell[:symbol].nil?
+        if cell.symbol.nil?
           print(" |")
         else
-          print(colorize_symbol!(cell[:symbol], cell[:color]) + "|")
+          print(colorize_symbol!(cell.symbol, cell.color) + "|")
         end
       end
       print "\n"
-    end 
+    end
     print("    -----------------\n")
     print("\n    |A|B|C|D|E|F|G|H|\n")
   end
@@ -164,11 +167,11 @@ class Chessboard
     case color
     when :white then "\e[37m#{symbol}\e[0m" # White
     when :black then "\e[30m#{symbol}\e[0m" # Black
-    when :red then "\e[31m#{symbol}\e[0m" # Red 
-    when :green then "\e[32m#{symbol}\e[0m"  # Green
+    #when :red then "\e[31m#{symbol}\e[0m" # Red 
+    #when :green then "\e[32m#{symbol}\e[0m"  # Green
     when :yellow then "\e[33m#{symbol}\e[0m" # Yellow
 
     else symbol
     end
-  end  
+  end
 end

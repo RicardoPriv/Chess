@@ -1,35 +1,39 @@
-require_relative "chessboard"
-
-require_relative "chesspieces"
-include Chesspieces
+require_relative "board.rb"
 
 module Gameloop
   EXIT_CONDITION = "e"
   RETURN_CONDITION = "b"
 
-  CU = [
-      # White pieces
-      { type: :king, color: :white, position: [7, 4], symbol: Chesspieces::PIECES[:king] },
-      { type: :rook, color: :white, position: [7, 0], symbol: Chesspieces::PIECES[:rook] },
-      { type: :rook, color: :white, position: [5, 5], symbol: Chesspieces::PIECES[:rook] },
-      { type: :bishop, color: :white, position: [5, 7], symbol: Chesspieces::PIECES[:bishop] },
-      { type: :bishop, color: :white, position: [4, 2], symbol: Chesspieces::PIECES[:bishop] },
-      { type: :knight, color: :white, position: [3, 6], symbol: Chesspieces::PIECES[:knight] },
-      { type: :pawn, color: :white, position: [4, 4], symbol: Chesspieces::PIECES[:pawn] },
-      { type: :pawn, color: :white, position: [6, 3], symbol: Chesspieces::PIECES[:pawn] },
-      { type: :queen, color: :white, position: [5, 1], symbol: Chesspieces::PIECES[:queen] },
+  TEST = [
+    # White pieces
+    { type: :king, color: :white, position: [7, 4], symbol: "K" },
+    { type: :rook, color: :white, position: [7, 0], symbol: "R" },
+    { type: :rook, color: :white, position: [5, 5], symbol: "R" },
+    { type: :bishop, color: :white, position: [5, 7], symbol: "B" },
+    { type: :bishop, color: :white, position: [4, 2], symbol: "B" },
+    { type: :knight, color: :white, position: [3, 6], symbol: "N" },
+    { type: :pawn, color: :white, position: [4, 4], symbol: "P" },
+    { type: :pawn, color: :white, position: [6, 3], symbol: "P" },
+    { type: :queen, color: :white, position: [5, 1], symbol: "Q" },
 
-      # Black pieces
-      { type: :king, color: :black, position: [0, 4], symbol: Chesspieces::PIECES[:king] },
-      { type: :queen, color: :black, position: [2, 3], symbol: Chesspieces::PIECES[:queen] },
-      { type: :rook, color: :black, position: [0, 7], symbol: Chesspieces::PIECES[:rook] },
-      { type: :bishop, color: :black, position: [1, 2], symbol: Chesspieces::PIECES[:bishop] },
-      { type: :knight, color: :black, position: [2, 6], symbol: Chesspieces::PIECES[:knight] },
-      { type: :knight, color: :black, position: [1, 1], symbol: Chesspieces::PIECES[:knight] },
-      { type: :pawn, color: :black, position: [3, 4], symbol: Chesspieces::PIECES[:pawn] },
-      { type: :pawn, color: :black, position: [1, 5], symbol: Chesspieces::PIECES[:pawn] }
-    ]
+    # Black pieces
+    { type: :king, color: :black, position: [0, 4], symbol: "K" },
+    { type: :queen, color: :black, position: [2, 3], symbol: "Q" },
+    { type: :rook, color: :black, position: [0, 7], symbol: "R" },
+    { type: :bishop, color: :black, position: [1, 2], symbol: "B" },
+    { type: :knight, color: :black, position: [2, 6], symbol: "N" },
+    { type: :knight, color: :black, position: [1, 1], symbol: "N" },
+    { type: :pawn, color: :black, position: [3, 4], symbol: "P" },
+    { type: :pawn, color: :black, position: [1, 5], symbol: "P" }
+  ]
 
+  def play
+    board = Board.new
+    board.set_board(TEST)
+    board.print_board
+  end
+
+=begin
   def play
     gameboard = Chessboard.new
 
@@ -106,4 +110,6 @@ module Gameloop
                    input[0].upcase.ord >= 65 and input[0].upcase.ord <= 72 and input[1].ord >= 49 and input[1].ord <= 56
     return false
   end
+
+=end
 end
