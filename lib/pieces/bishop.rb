@@ -8,4 +8,10 @@ class Bishop < Piece
   def initialize(color)
     super(Symbols::BISHOP, color)
   end
+
+  # Diagonal movement of the bishop piece
+  def do_moves(coordinate, board)
+    directions = [[1, 1], [-1, 1], [-1, -1], [1, -1]]
+    straight_movement(directions, coordinate, board)
+  end
 end

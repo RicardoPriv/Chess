@@ -60,14 +60,19 @@ class Board
     piece = tile_to_piece(tile)
     return nil unless piece.color == player
 
+    coordinate = tile_to_coordinate(tile)
     case piece
     when Pawn
     when Rook
-      piece.do_moves(tile_to_coordinate(tile), board)
+      piece.do_moves(coordinate, board)
     when Knight
+      piece.do_moves(coordinate, board)
     when Bishop
+      piece.do_moves(coordinate, board)
     when Queen
+      piece.do_moves(coordinate, board)
     when King
+      piece.do_moves(coordinate, board)
     end
 
     piece
@@ -92,6 +97,12 @@ class Board
     [tile[1].to_i - 1, tile[0].ord - 65]
   end
 
+  # Converts and array of coordinates to their Chess tiles
+  def array_coordinates_to_tiles(coordinates)
+    tiles = []
+    coordinates.each { |i| tiles.push(coordinate_to_tile(i).dup) }
+  end
+
   # checks at the given position on the board if there is a piece of the opposing player (opponent of given player)
   def opponent_piece?(coordinate, player, board)
     return false unless valid_tile?(coordinate_to_tile([coordinate[1], coordinate[0]]))
@@ -104,11 +115,7 @@ class Board
     true if cell[:color] != player && !cell[:color].nil?
   end
 
-  # Converts and array of coordinates to their Chess tiles
-  def array_coordinates_to_tiles(coordinates)
-    tiles = []
-    coordinates.each { |i| tiles.push(coordinate_to_tile(i).dup) }
-  end
+
 
 =begin
   # takes the tile (eg: A1) and retrieves the piece hash at that position on the board

@@ -54,13 +54,15 @@ module Gameloop
         # Show moves on board
         board.add_possible_moves_colors(piece, player)
         board.print_board
+
+        # Ask user which tile to move piece to
+        move_to = get_input("Enter a valid move from \#{}: ") { |i| (valid_input(i.upcase) && moves.include?(i.upcase)) || i == EXIT_CONDITION }
+        board.revert_possible_moves_colors(moves, player)
+
         board.revert_possible_moves_colors(piece, player)
 =begin
 
-        # Ask user which tile to move piece to
-        move_to = get_input("Enter a valid move from #{moves}: ") { |i| (valid_input(i.upcase) && moves.include?(i.upcase)) || i == EXIT_CONDITION }
-        board.revert_possible_moves_colors(moves, player)
-
+        
         next if move_to.nil?
         return if move_to.upcase == EXIT_CONDITION.upcase
 
@@ -69,10 +71,11 @@ module Gameloop
         #add taken pieces to some array so I have pieces taken tracked
 
         # Change player turn
-        player = player == :white ? :black : :white
 =end
         break
       end
+
+      player = player == :white ? :black : :white
     end
   end
 
