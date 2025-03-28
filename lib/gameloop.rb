@@ -30,7 +30,50 @@ module Gameloop
   def play
     board = Board.new
     board.set_board(TEST)
-    board.print_board
+    player = :white
+
+    while true #gameboard.winner?.nil?
+      # Get player move
+      loop do
+        # Print gameboard changes
+        board.print_board
+
+        # Get piece to move
+        move_from = get_input("Input the piece you wish to move [A1-H8]: ") { |i| valid_input(i.upcase) || i == EXIT_CONDITION }
+
+        next if move_from.nil?
+        return if move_from.upcase == EXIT_CONDITION.upcase
+
+        # Get possible moves from the chosen piece
+        piece = board.possible_moves(player, move_from)
+        if piece.nil?
+          print("No possible moves at tile #{move_from}\n")
+          next
+        end
+
+        # Show moves on board
+        board.add_possible_moves_colors(piece, player)
+        board.print_board
+        board.revert_possible_moves_colors(piece, player)
+=begin
+
+        # Ask user which tile to move piece to
+        move_to = get_input("Enter a valid move from #{moves}: ") { |i| (valid_input(i.upcase) && moves.include?(i.upcase)) || i == EXIT_CONDITION }
+        board.revert_possible_moves_colors(moves, player)
+
+        next if move_to.nil?
+        return if move_to.upcase == EXIT_CONDITION.upcase
+
+        # Move piece on board and return the piece if one was taken
+        original_piece = board.move_piece(move_from, move_to, player)
+        #add taken pieces to some array so I have pieces taken tracked
+
+        # Change player turn
+        player = player == :white ? :black : :white
+=end
+        break
+      end
+    end
   end
 
 =begin
@@ -48,51 +91,11 @@ module Gameloop
     #p gameboard.valid_moves(:black, "D3")
 
     # Gameloop that continues until a winner is found
-    while gameboard.winner?.nil?
-      # Get player move
-      moved = nil
-      loop do
-        # Print gameboard changes
-        gameboard.print_board
-
-        # Get piece to move
-        move_from = get_input("Input the piece you wish to move [A1-H8]: ") { |i| valid_input(i.upcase) || i == EXIT_CONDITION }
-
-        next if move_from.nil?
-        return if move_from.upcase == EXIT_CONDITION.upcase
-
-        # Get possible moves from the chosen piece
-        moves = gameboard.valid_moves(player, move_from)
-        if moves.nil?
-          print("No possible moves at tile #{move_from}\n")
-          next
-        end
-
-        # Show moves on board
-        gameboard.add_possible_moves_colors(moves)
-        gameboard.print_board
-
-        # Ask user which tile to move piece to
-        move_to = get_input("Enter a valid move from #{moves}: ") { |i| (valid_input(i.upcase) && moves.include?(i.upcase)) || i == EXIT_CONDITION }
-        gameboard.revert_possible_moves_colors(moves, player)
-
-        next if move_to.nil?
-        return if move_to.upcase == EXIT_CONDITION.upcase
-
-        # Move piece on board and return the piece if one was taken
-        original_piece = gameboard.move_piece(move_from, move_to, player)
-        #add taken pieces to some array so I have pieces taken tracked
-
-        # Change player turn
-        player = player == :white ? :black : :white
-
-        break
-      end
-
+    
 
     end
   end
-
+=end
   def get_input(instruction)
     loop do
       print("\n#{instruction}")
@@ -110,6 +113,4 @@ module Gameloop
                    input[0].upcase.ord >= 65 and input[0].upcase.ord <= 72 and input[1].ord >= 49 and input[1].ord <= 56
     return false
   end
-
-=end
 end

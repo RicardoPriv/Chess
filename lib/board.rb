@@ -8,6 +8,7 @@ class Board
   attr_accessor :board
 
   MOVEABLE_COLOR = :yellow
+  MOVEABLE_SYMBOL = "+"
   DIMENSION = 8
 
   def initialize
@@ -26,6 +27,7 @@ class Board
   end
 
   # Set up the board with piece objects (Rook, Knight, Pawn, etc.)
+  #NOTE REMOVE WHEN COMPLETE OR CHANGE IF WANT TO ADD PUZZLE SCENARIOS
   def set_board(custom_pieces = [])
     p "Setting up the board..."
     @board = Array.new(DIMENSION) { |i| Array.new(DIMENSION) { Blank.new } }
@@ -46,8 +48,66 @@ class Board
         @board[row][col] = piece_obj
       end
     end
-    p "Board setup complete."
-    p @board
+  end
+
+  # takes the tile (eg: A1) and retrieves the piece hash at that position on the board
+  def tile_to_piece(tile)
+    row = board[tile[1].to_i - 1]
+    row[tile[0].ord % 65]
+  end
+
+  def possible_moves(player, tile)
+    piece = tile_to_piece(tile)
+    return nil unless piece.color == player
+
+    case piece
+    when Pawn
+    when Rook
+      piece.do_moves(tile_to_coordinate(tile), board)
+    when Knight
+    when Bishop
+    when Queen
+    when King
+    end
+
+    piece
+  end
+
+  # Checks if the tile is within the borders of a chessboard [A1 - H8]
+  def valid_tile?(tile)
+    row = tile[0].ord - 65
+    col = tile[1].to_i
+    return true if (row >= 0 && row < 8) && (col >= 1 && col < 9)
+
+    false
+  end
+
+  # Converts coordinate position on board to chess notation
+  def coordinate_to_tile(coordinate)
+    (coordinate[1] + 65).chr + (coordinate[0] + 1).to_s
+  end
+
+  # Converts a chess tile (eg A2) into a coordinate (eg 1, 0) [row, col]
+  def tile_to_coordinate(tile)
+    [tile[1].to_i - 1, tile[0].ord - 65]
+  end
+
+  # checks at the given position on the board if there is a piece of the opposing player (opponent of given player)
+  def opponent_piece?(coordinate, player, board)
+    return false unless valid_tile?(coordinate_to_tile([coordinate[1], coordinate[0]]))
+
+    row = board[coordinate[0]]
+    cell = row[coordinate[1]]
+
+    return false if cell[:color].nil?
+
+    true if cell[:color] != player && !cell[:color].nil?
+  end
+
+  # Converts and array of coordinates to their Chess tiles
+  def array_coordinates_to_tiles(coordinates)
+    tiles = []
+    coordinates.each { |i| tiles.push(coordinate_to_tile(i).dup) }
   end
 
 =begin
@@ -60,26 +120,6 @@ class Board
   def valid_piece?(player, tile)
     piece = get_piece(tile)
     return true if piece[:color] == player
-  end
-
-  def valid_moves(player, tile)
-    return nil unless valid_piece?(player, tile)
-
-    piece = get_piece(tile)
-    case piece[:type]
-    when :pawn
-      Chessmovements.pawn_moves(tile, get_board, player)
-    when :rook
-      Chessmovements.rook_moves(tile, get_board, player)
-    when :knight
-      Chessmovements.knight_moves(tile, get_board, player)
-    when :bishop
-      Chessmovements.bishop_moves(tile, get_board, player)
-    when :queen
-      Chessmovements.queen_moves(tile, get_board, player)
-    when :king
-      Chessmovements.king_moves(tile, get_board, player)
-    end
   end
 
   def move_piece(tile_move_from, tile_move_to, player)
@@ -107,44 +147,25 @@ class Board
     return winner
   end
 
-  def add_possible_moves_colors(possible_moves)
-    board = get_board
-    possible_moves.each do |move|
-      coord = [move[1].to_i - 1, move[0].ord - 65]
-      if board[coord[0]][coord[1]][:type].eql?(:empty)
-        cell = {
-          type: :movement,
-          symbol: Chesspieces::POSSIBLE_MOVE,
-          color: MOVEABLE_COLOR,
-          position: coord
-        }
-      else
-        cell = board[coord[0]][coord[1]]
-        cell[:color] = MOVEABLE_COLOR
-      end
-      board[coord[0]][coord[1]] = cell
-    end
-  end
-
-  def revert_possible_moves_colors(possible_moves, player)
-    board = get_board
-    color = player == :white ? :black : :white
-
-    possible_moves.each do |move|
-      coord = [move[1].to_i - 1, move[0].ord - 65]
-      if board[coord[0]][coord[1]][:type] == :movement
-        board[coord[0]][coord[1]] = {
-          type: :empty,
-          symbol: Chesspieces::PIECES[:empty],
-          color: nil,
-          position: coord
-        }
-      else
-        board[coord[0]][coord[1]][:color] = color
-      end
-    end
-  end
 =end
+  # Adds color to all possible movement tiles
+  def add_possible_moves_colors(piece, player)
+    piece.moves.each do |row, col|
+      cell = board[row][col]
+      cell.symbol = MOVEABLE_SYMBOL
+      cell.color = MOVEABLE_COLOR
+    end
+
+    piece.collisions.each { |row, col| board[row][col].color = MOVEABLE_COLOR if board[row][col].color != player}
+  end
+
+  # Removes the possible movement coloring
+  def revert_possible_moves_colors(piece, player)
+    opp_color = player == :white ? :black : :white
+    piece.moves.each { |row, col| board[row][col] = Blank.new }
+    piece.collisions.each { |row, col| board[row][col].color = opp_color if board[row][col].color == MOVEABLE_COLOR}
+  end
+
   def print_board
     board = self.board.reverse.dup
     board.each_with_index do |row, i|
