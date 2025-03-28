@@ -27,6 +27,7 @@ module Gameloop
     { type: :pawn, color: :black, position: [1, 5], symbol: "P" }
   ]
 
+  # Gameloop that continues until a winner is found
   def play
     board = Board.new
     board.set_board(TEST)
@@ -39,14 +40,17 @@ module Gameloop
         board.print_board
 
         # Get piece to move
-        move_from = get_input("Input the piece you wish to move [A1-H8]: ") { |i| valid_input(i.upcase) || i == EXIT_CONDITION }
+        move_from = get_input("Input the piece you wish to move [A1-H8]: ") { |i| valid_input(i) || i == EXIT_CONDITION }
 
         next if move_from.nil?
-        return if move_from.upcase == EXIT_CONDITION.upcase
+        return if move_from == EXIT_CONDITION.upcase
 
-        # Get possible moves from the chosen piece
-        piece = board.possible_moves(player, move_from)
-        if piece.nil?
+        # Get possible moves and piece from the selected tile
+        piece = board.update_possible_moves(player, move_from)
+        moves = board.get_possible_moves(move_from) unless piece.nil?
+
+        # Resets and asks again if no possible moves
+        if piece.nil? || moves == []
           print("No possible moves at tile #{move_from}\n")
           next
         end
@@ -56,49 +60,30 @@ module Gameloop
         board.print_board
 
         # Ask user which tile to move piece to
-        move_to = get_input("Enter a valid move from \#{}: ") { |i| (valid_input(i.upcase) && moves.include?(i.upcase)) || i == EXIT_CONDITION }
-        board.revert_possible_moves_colors(moves, player)
+        move_to = get_input("Enter a valid move from #{moves}: ") do |i|
+          (valid_input(i.upcase) && moves.include?(i.upcase)) || i == EXIT_CONDITION
+        end
 
         board.revert_possible_moves_colors(piece, player)
-=begin
 
-        
         next if move_to.nil?
-        return if move_to.upcase == EXIT_CONDITION.upcase
+        return if move_to == EXIT_CONDITION.upcase
 
         # Move piece on board and return the piece if one was taken
-        original_piece = board.move_piece(move_from, move_to, player)
+        original_piece = board.move_piece(move_from, move_to)
+
+        p original_piece
+
         #add taken pieces to some array so I have pieces taken tracked
 
-        # Change player turn
-=end
         break
       end
 
+      # Change player turn
       player = player == :white ? :black : :white
     end
   end
 
-=begin
-  def play
-    gameboard = Chessboard.new
-
-    gameboard.set_board(CU)
-
-    player = :white
-
-    #p gameboard.valid_moves(:white, "H6")
-    #p "---"
-    #p gameboard.valid_moves(:black, "H1")
-    #p "---"
-    #p gameboard.valid_moves(:black, "D3")
-
-    # Gameloop that continues until a winner is found
-    
-
-    end
-  end
-=end
   def get_input(instruction)
     loop do
       print("\n#{instruction}")

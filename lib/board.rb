@@ -16,6 +16,7 @@ class Board
     setup_board
   end
 
+  # Sets up a standard chess starting board
   def setup_board
     board[0] = [Rook.new(:white), Knight.new(:white), Bishop.new(:white), Queen.new(:white),
                 King.new(:white), Bishop.new(:white), Knight.new(:white), Rook.new(:white)]
@@ -56,7 +57,8 @@ class Board
     row[tile[0].ord % 65]
   end
 
-  def possible_moves(player, tile)
+  # Updates the possible movement for the piece at a given tile: Changes moves and collisions for the piece
+  def update_possible_moves(player, tile)
     piece = tile_to_piece(tile)
     return nil unless piece.color == player
 
@@ -101,60 +103,46 @@ class Board
   def array_coordinates_to_tiles(coordinates)
     tiles = []
     coordinates.each { |i| tiles.push(coordinate_to_tile(i).dup) }
+    tiles
   end
 
   # checks at the given position on the board if there is a piece of the opposing player (opponent of given player)
-  def opponent_piece?(coordinate, player, board)
-    return false unless valid_tile?(coordinate_to_tile([coordinate[1], coordinate[0]]))
+  def opponent_piece?(coordinate, player)
+    return false unless valid_tile?(coordinate_to_tile([coordinate[0], coordinate[1]]))
 
     row = board[coordinate[0]]
     cell = row[coordinate[1]]
 
-    return false if cell[:color].nil?
+    return true if cell.color != player && !cell.is_a?(Blank)
 
-    true if cell[:color] != player && !cell[:color].nil?
+    false
   end
 
-
-
-=begin
-  # takes the tile (eg: A1) and retrieves the piece hash at that position on the board
-  def get_piece(tile)
-    row = get_board[tile[1].to_i - 1]
-    return row[tile[0].ord % 65]
+  # Add the movement coord array with collisions tiles where the piece is the opponents and returns as tiles
+  def get_possible_moves(tile)
+    coord = tile_to_coordinate(tile)
+    piece = board[coord[0]][coord[1]]
+    moves = array_coordinates_to_tiles(piece.moves)
+    piece.collisions.each { |c| moves.push(coordinate_to_tile(c)) if opponent_piece?(c, piece.color) }
+    moves
   end
 
-  def valid_piece?(player, tile)
-    piece = get_piece(tile)
-    return true if piece[:color] == player
-  end
-
-  def move_piece(tile_move_from, tile_move_to, player)
-    board = get_board
-    coord_from = [tile_move_from[1].to_i - 1, tile_move_from[0].ord - 65]
-    coord_to = [tile_move_to[1].to_i - 1, tile_move_to[0].ord - 65]
+  # Moves the piece from tile_move_from to tile_move_to and returns what was originally at tile_move_to
+  def move_piece(tile_move_from, tile_move_to)
+    coord_from = tile_to_coordinate(tile_move_from)
+    coord_to = tile_to_coordinate(tile_move_to)
 
     original_tile = board[coord_to[0]][coord_to[1]].dup
     board[coord_to[0]][coord_to[1]] = board[coord_from[0]][coord_from[1]].dup
-    board[coord_from[0]][coord_from[1]] = {
-      type: :empty,
-      symbol: Chesspieces::PIECES[:empty],
-      color: nil,
-      position: coord_from
-    }
+    board[coord_from[0]][coord_from[1]] = Blank.new
 
-    return original_tile[:type] if original_tile[:type] != :movement
-
-    nil
+    original_tile
   end
 
   def winner?
-    winner = nil
-
-    return winner
+    nil
   end
 
-=end
   # Adds color to all possible movement tiles
   def add_possible_moves_colors(piece, player)
     piece.moves.each do |row, col|
