@@ -9,6 +9,9 @@ class Pawn < Piece
     super(Symbols::PAWN, color)
   end
 
+  def do_moves(coordinate, board)
+    nil
+  end
 =begin
   # Returns possible pawn movements
   def pawn_moves(tile, board, player)
