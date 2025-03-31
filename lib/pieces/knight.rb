@@ -12,5 +12,6 @@ class Knight < Piece
   def do_moves(coordinate, board)
     directions = [[1, 2], [1, -2], [-1, 2], [-1, -2], [2, 1], [2, -1], [-2, 1], [-2, -1]]
     coordinate_movement(directions, coordinate, board)
+    indirect_collisions(directions, coordinate, board)
   end
 end

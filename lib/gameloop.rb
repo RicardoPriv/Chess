@@ -46,7 +46,7 @@ module Gameloop
         return if move_from == EXIT_CONDITION.upcase
 
         # Get possible moves and piece from the selected tile
-        moves = board.get_possible_moves(move_from, player)
+        moves = board.get_possible_moves(move_from)
 
         # Resets and asks again if no possible moves
         if moves == []
@@ -69,11 +69,8 @@ module Gameloop
         return if move_to == EXIT_CONDITION.upcase
 
         # Move piece on board and return the piece if one was taken
-        original_piece = board.move_piece(move_from, move_to)
+        board.move_piece(move_from, move_to)
 
-        #p original_piece
-
-        #add taken pieces to some array so I have pieces taken tracked
 
         break
       end

@@ -13,5 +13,6 @@ class King < Piece
   def do_moves(coordinate, board)
     directions = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [-1, 1], [-1, -1], [1, -1]]
     coordinate_movement(directions, coordinate, board)
+    indirect_collisions(directions, coordinate, board)
   end
 end
