@@ -32,15 +32,18 @@ module Gameloop
     board = Board.new
     board.set_board(TEST)
     player = :white
+    board.print_board
 
     while true #gameboard.winner?.nil?
       # Get player move
       loop do
-        # Print gameboard changes
-        board.print_board
-
-        # Get piece to move
-        move_from = get_input("Input the piece you wish to move [A1-H8]: ") { |i| valid_input(i) || i == EXIT_CONDITION }
+        if board.in_check
+          king_tile = board.get_king_tile(player)
+          move_from = get_input("Input the piece you wish to move #{king_tile}: ") { |i| i.upcase == king_tile || i == EXIT_CONDITION}
+          board.in_check = nil
+        else
+          move_from = get_input("Input the piece you wish to move [A1-H8]: ") { |i| valid_input(i) || i == EXIT_CONDITION }
+        end
 
         next if move_from.nil?
         return if move_from == EXIT_CONDITION.upcase
@@ -70,8 +73,11 @@ module Gameloop
 
         # Move piece on board and return the piece if one was taken
         board.move_piece(move_from, move_to)
+        p board.in_check
 
 
+        # Print gameboard changes
+        board.print_board
         break
       end
 

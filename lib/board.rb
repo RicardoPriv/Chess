@@ -5,7 +5,8 @@ Dir["#{__dir__}/pieces/*.rb"].each { |file| require_relative file }
 
 # Class that handles chessboard logic
 class Board
-  attr_accessor :board, :kings
+  attr_accessor :board, :kings, :in_check
+
 
   MOVEABLE_COLOR = :yellow
   MOVEABLE_SYMBOL = "+"
@@ -32,10 +33,8 @@ class Board
     knights_positions.each { |p| board[p[0]][p[1]].do_moves(p, board) }
 
     self.kings = []
-    kings.push({ color: board[0][4].color, position: [0, 4], in_check: false })
-    kings.push({ color: board[7][4].color, position: [7, 4], in_check: false})
-
-    print_board
+    kings.push({ color: board[0][4].color, position: [0, 4] })
+    kings.push({ color: board[7][4].color, position: [7, 4] })
   end
 
   # Add the movement coord array with collisions tiles where the piece is the opponents and returns as tiles
@@ -50,7 +49,8 @@ class Board
   # Set up the board with piece objects (Rook, Knight, Pawn, etc.)
   #NOTE REMOVE WHEN COMPLETE OR CHANGE IF WANT TO ADD PUZZLE SCENARIOS
   def set_board(custom_pieces = [])
-    self.kings = []
+    self.kings = [{ king: King.new(:white), position: [], threats: [] },
+                  { king: King.new(:black), position: [], threats: [] }]
     p "Setting up the board..."
     self.board = Array.new(DIMENSION) { |i| Array.new(DIMENSION) { Blank.new } }
 
@@ -64,7 +64,9 @@ class Board
                   when :queen then Queen.new(piece[:color])
                   when :king
                     piece_obj = King.new(piece[:color])
-                    kings.push({ color: piece_obj.color, position: piece[:position], in_check: false })
+                    king = kings.find { |k| k[:king].color == piece[:color] }
+                    king[:king] = piece_obj
+                    king[:position] = piece[:position]
                     piece_obj
                   when :pawn then Pawn.new(piece[:color])
                   end
@@ -74,9 +76,22 @@ class Board
 
     board.each_with_index do |row, r|
       row.each_with_index do |cell, c|
+        color = cell.color == :white ? :black : :white
+        kings.each { |king| king[:threats] << { tile: coordinate_to_tile([r, c]), moves: [] } if king[:king].color == color } unless cell.is_a?(Blank)
+      end
+    end
+
+    kings.each { |king| update_possible_moves(coordinate_to_tile(king[:position]), king[:king].color) }
+    # king => { color: position: threats: [{tile: moves: []}] }
+    board.each_with_index do |row, r|
+      row.each_with_index do |cell, c|
         update_possible_moves(coordinate_to_tile([r, c]), cell.color)
       end
     end
+  end
+
+  def get_king_tile(player)
+    kings.find { |king| return coordinate_to_tile(king[:position]) if king[:king].color == player }
   end
 
   # Adds color to all possible movement tiles
@@ -91,7 +106,6 @@ class Board
     end
 
     piece.collisions.each { |row, col| board[row][col].color = MOVEABLE_COLOR if board[row][col].color != player }
-    p piece.indirect_col
   end
 
   # Removes the possible movement coloring
@@ -107,21 +121,26 @@ class Board
 
   # Moves the piece from tile_move_from to tile_move_to and returns what was originally at tile_move_to
   def move_piece(tile_move_from, tile_move_to)
+    # Get required variables
     coord_from = tile_to_coordinate(tile_move_from)
     coord_to = tile_to_coordinate(tile_move_to)
 
     piece = piece_from_tile(tile_move_from)
     to_update = piece.collisions + piece.indirect_col
 
+    # Resets check if King moves from being in check
+    self.in_check = nil if in_check && piece.is_a?(King)
+
+    # Move piece from tile_move_from to tile_move_to
     board[coord_to[0]][coord_to[1]] = board[coord_from[0]][coord_from[1]].dup
     board[coord_from[0]][coord_from[1]] = Blank.new
 
+    # Update the possible moves for all affected pieces
     update_possible_moves(tile_move_to, piece.color)
     piece = piece_from_tile(tile_move_to)
     to_update += piece.collisions + piece.indirect_col
-
     to_update.each { |t| update_possible_moves(coordinate_to_tile(t), piece_from_tile(coordinate_to_tile(t)).color) }
-    #update_in_check(tile_move_to)
+    p to_update
   end
 
   def print_board
@@ -132,6 +151,8 @@ class Board
       row.each_with_index do |cell, i|
         if cell.symbol.nil?
           print(" |")
+        elsif cell.is_a?(King) && in_check == cell.color
+          print(colorize_symbol!(cell.symbol, :red) + "|")
         else
           print(colorize_symbol!(cell.symbol, cell.color) + "|")
         end
@@ -140,10 +161,6 @@ class Board
     end
     print("    -----------------\n")
     print("\n    |A|B|C|D|E|F|G|H|\n")
-  end
-
-  def check?(player)
-    kings.each { |k| return k[:in_check] if k[:color] == player }
   end
 
   # Declaration of Private functions
@@ -175,15 +192,6 @@ class Board
     false
   end
 
-  # Checks if the opposing player is in check
-  def update_in_check(tile)
-    piece = piece_from_tile(tile)
-    # Based on the moved piece's color, gets the opposing king
-    index = kings.find_index { |k| k[:color] != piece.color }
-    # Communicates that King is in check
-    kings[index][:in_check] = piece.collisions.include?(kings[index][:position])
-  end
-
   def promotions(player)
 
     nil
@@ -192,10 +200,12 @@ class Board
   # Updates the possible movement for the piece at a given tile: Changes moves and collisions for the piece
   def update_possible_moves(tile, player)
     piece = tile_to_piece(tile)
-    piece.clear_movement
     return nil unless piece.color == player
 
+    remove_threats(tile)
+    piece.clear_movement
     coordinate = tile_to_coordinate(tile)
+
     case piece
     when Pawn
       piece.do_moves(coordinate, board)
@@ -203,6 +213,7 @@ class Board
       piece.do_moves(coordinate, board)
     when Knight
       piece.do_moves(coordinate, board)
+      kings.each { |king| king[:king] = piece if king[:color] == player }
     when Bishop
       piece.do_moves(coordinate, board)
     when Queen
@@ -211,6 +222,7 @@ class Board
       piece.do_moves(coordinate, board)
     end
 
+    add_threats(tile)
     piece
   end
 
@@ -240,6 +252,48 @@ class Board
     board[coordinate[0]][coordinate[1]]
   end
 
+  # Adds the tile to the kings threats if it has a valid threat
+  def add_threats(tile)
+    piece = tile_to_piece(tile)
+    # Stops function if no valid piece to threaten the King on the tile
+    return if piece.is_a?(Blank) || piece.is_a?(King)
+
+    # Checks player
+    player = piece.color == :white ? :black : :white
+
+    # Gets possible tiles the piece can move and all possible tiles King can be threatened on
+    king = kings.find { |k| k[:king].color == player }
+    piece_moves = piece.moves + piece.collisions
+    possible_threats = king[:king].moves + king[:king].collisions + [king[:position]]
+    threats = possible_threats & piece_moves
+
+    # Adds threatened tiles to relevant King piece
+    king[:threats].each do |th|
+      break unless th[:tile] != tile
+
+      th[:moves] = threats
+      # Checks if the threat triggers check
+      self.in_check = player if th[:moves].include?(king[:position])
+    end
+  end
+
+  # Resets the threats for the given tile for the King
+  def remove_threats(tile)
+    # Checks player
+    player = tile_to_piece(tile).color == :white ? :black : :white
+
+    # Gets the King
+    king = kings.find { |k| k[:king].color == player }
+
+    # Resets threats for the relevant tile to empty
+    king[:threats].each do |th|
+      next unless th[:tile] != tile
+
+      th[:moves] = []
+      break
+    end
+  end
+
   def clear_moves(tile)
     coord = tile_to_coordinate(tile)
     piece = board[coord[0]][coord[1]]
@@ -252,7 +306,7 @@ class Board
     case color
     when :white then "\e[37m#{symbol}\e[0m" # White
     when :black then "\e[30m#{symbol}\e[0m" # Black
-    #when :red then "\e[31m#{symbol}\e[0m" # Red 
+    when :red then "\e[31m#{symbol}\e[0m" # Red 
     #when :green then "\e[32m#{symbol}\e[0m"  # Green
     when :yellow then "\e[33m#{symbol}\e[0m" # Yellow
 

@@ -69,7 +69,6 @@ class Piece
     singular_movement = [[2, 1], [2, -1], [1, 2], [-1, 2], [-2, 1], [-2, -1], [1, -2], [-1, -2]]
 
     directions.each do |dir|
-      straight_movement.delete(dir)
       singular_movement.delete(dir)
     end
 
@@ -87,7 +86,7 @@ class Piece
       end
 
       # Adds indirect collision tiles to relevant variable
-      indirect_col.push(coordinate_copy.dup) if within_board(coordinate_copy)
+      indirect_col.push(coordinate_copy.dup) if within_board(coordinate_copy) && !collisions.include?(coordinate_copy)
     end
 
     # Checks if a piece affects it in directions that it cannot move
