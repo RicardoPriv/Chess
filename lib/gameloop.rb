@@ -37,28 +37,31 @@ module Gameloop
     while true #gameboard.winner?.nil?
       # Get player move
       loop do
-        if board.in_check
-          king_tile = board.get_king_tile(player)
-          move_from = get_input("Input the piece you wish to move #{king_tile}: ") { |i| i.upcase == king_tile || i == EXIT_CONDITION}
-          board.in_check = nil
-        else
-          move_from = get_input("Input the piece you wish to move [A1-H8]: ") { |i| valid_input(i) || i == EXIT_CONDITION }
-        end
+        move_from = get_input("Input the piece you wish to move [A1-H8]: ") { |i| valid_input(i) || i == EXIT_CONDITION }
 
         next if move_from.nil?
         return if move_from == EXIT_CONDITION.upcase
 
+        # Ensure tile selected has a valid piece for the player
+        unless board.valid_player_piece(move_from, player)
+          p "invalid player piece"
+          break
+        end
+
         # Get possible moves and piece from the selected tile
-        moves = board.get_possible_moves(move_from)
+        moves = board.in_check.nil? ? board.get_possible_moves(move_from) : board.get_in_check_moves(move_from)
+        p moves
 
         # Resets and asks again if no possible moves
         if moves == []
           print("No possible moves at tile #{move_from}\n")
+          print("King is in Check\n") if board.in_check
           next
         end
 
         # Show moves on board
-        board.add_possible_moves_colors(move_from, player)
+        board.add_possible_moves_colors(moves)
+        p "After possible moves"
         board.print_board
 
         # Ask user which tile to move piece to
@@ -73,17 +76,21 @@ module Gameloop
 
         # Move piece on board and return the piece if one was taken
         board.move_piece(move_from, move_to)
-        p board.in_check
-
 
         # Print gameboard changes
         board.print_board
+
+        # Change player turn
+        player = player == :white ? :black : :white
+
         break
       end
 
-      # Change player turn
-      player = player == :white ? :black : :white
+      p board.checkmate
+      break if board.checkmate
     end
+
+    p "yay"
   end
 
   def get_input(instruction)
@@ -99,8 +106,9 @@ module Gameloop
   end
 
   def valid_input(input)
-    return true if input.length == 2 and input[0].match?(/^[a-zA-Z]$/) and input[1].match?(/^\d+$/) and 
-                   input[0].upcase.ord >= 65 and input[0].upcase.ord <= 72 and input[1].ord >= 49 and input[1].ord <= 56
-    return false
+    return true if input.length == 2 && input[0].match?(/^[a-zA-Z]$/) && input[1].match?(/^\d+$/) && 
+                   input[0].upcase.ord >= 65 && input[0].upcase.ord <= 72 && input[1].ord >= 49 && input[1].ord <= 56
+
+    false
   end
 end
