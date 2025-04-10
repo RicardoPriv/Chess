@@ -43,6 +43,16 @@ class Board
     moves = array_coordinates_to_tiles(piece.moves)
     piece.collisions.each { |c| moves.push(coordinate_to_tile(c)) if opponent_piece?(c, piece.color) }
 
+    if piece.is_a?(King)
+      king = king_from_color(piece.color)
+      p moves
+      p king[:threats]
+      moves.reject! do |move|
+        king[:threats].any? { |th| th[:moves].include?(tile_to_coordinate(move)) }
+      end
+      p moves
+    end
+
     moves
   end
 
@@ -100,7 +110,6 @@ class Board
         next unless threat[:moves].include?(king_pos)
 
         th_piece = tile_to_piece(threat[:tile])
-        th_moves = th_piece.moves
         th_coord = tile_to_coordinate(threat[:tile])
 
         # Capture: If the piece can capture the threat
@@ -118,23 +127,6 @@ class Board
     end
 
     array_coordinates_to_tiles(moves)
-  end
-
-  def coords_between(start_coord, end_coord)
-    line = []
-    r1, c1 = start_coord
-    r2, c2 = end_coord
-    dr = r2 <=> r1
-    dc = c2 <=> c1
-
-    cur_r, cur_c = r1 + dr, c1 + dc
-    while [cur_r, cur_c] != [r2, c2]
-      line << [cur_r, cur_c]
-      cur_r += dr
-      cur_c += dc
-    end
-
-    line
   end
 
   # Set up the board with piece objects (Rook, Knight, Pawn, etc.)
@@ -181,10 +173,6 @@ class Board
     end
   end
 
-  def get_king_tile(player)
-    kings.find { |king| return coordinate_to_tile(king[:position]) if king[:king].color == player }
-  end
-
   # Adds color to all possible movement tiles
   def add_possible_moves_colors(moves)
     moves.each do |move|
@@ -214,7 +202,9 @@ class Board
 
     piece = piece_from_tile(tile_move_from)
     to_update = piece.collisions + piece.indirect_col
+
     remove_threats(tile_move_from)
+    remove_threats(tile_move_to) unless tile_to_piece(tile_move_to).is_a?(Blank)
 
     # Move piece from tile_move_from to tile_move_to
     board[coord_to[0]][coord_to[1]] = board[coord_from[0]][coord_from[1]].dup
@@ -262,6 +252,7 @@ class Board
     print("\n    |A|B|C|D|E|F|G|H|\n")
   end
 
+  # Checks if the piece at given tile is the given player's piece
   def valid_player_piece(tile, player)
     tile_to_piece(tile).color == player
   end
@@ -401,6 +392,26 @@ class Board
         break
       end
     end
+  end
+
+  # Retrieves the coordinates between two given coordinates
+  def coords_between(start_coord, end_coord)
+    line = []
+    r1, c1 = start_coord
+    r2, c2 = end_coord
+    dr = r2 <=> r1
+    dc = c2 <=> c1
+
+    cur_r = r1 + dr
+    cur_c = c1 + dc
+
+    while [cur_r, cur_c] != [r2, c2]
+      line << [cur_r, cur_c]
+      cur_r += dr
+      cur_c += dc
+    end
+
+    line
   end
 
   def king_from_color(color)

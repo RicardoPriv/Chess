@@ -5,6 +5,30 @@ module Gameloop
   RETURN_CONDITION = "b"
 
   TEST = [
+    # White pieces (now on bottom)
+    { type: :king, color: :white, position: [0, 4], symbol: "K" },
+    { type: :rook, color: :white, position: [0, 0], symbol: "R" },
+    { type: :rook, color: :white, position: [2, 5], symbol: "R" },
+    { type: :bishop, color: :white, position: [2, 7], symbol: "B" },
+    { type: :bishop, color: :white, position: [3, 2], symbol: "B" },
+    { type: :knight, color: :white, position: [4, 6], symbol: "N" },
+    { type: :pawn, color: :white, position: [3, 4], symbol: "P" },
+    { type: :pawn, color: :white, position: [1, 3], symbol: "P" },
+    { type: :queen, color: :white, position: [2, 1], symbol: "Q" },
+  
+    # Black pieces (now on top)
+    { type: :king, color: :black, position: [7, 4], symbol: "K" },
+    { type: :queen, color: :black, position: [5, 3], symbol: "Q" },
+    { type: :rook, color: :black, position: [7, 7], symbol: "R" },
+    { type: :bishop, color: :black, position: [6, 2], symbol: "B" },
+    { type: :knight, color: :black, position: [5, 6], symbol: "N" },
+    { type: :knight, color: :black, position: [6, 1], symbol: "N" },
+    { type: :pawn, color: :black, position: [4, 4], symbol: "P" },
+    { type: :pawn, color: :black, position: [6, 5], symbol: "P" }
+  ]
+  
+=begin
+  [
     # White pieces
     { type: :king, color: :white, position: [7, 4], symbol: "K" },
     { type: :rook, color: :white, position: [7, 0], symbol: "R" },
@@ -26,6 +50,7 @@ module Gameloop
     { type: :pawn, color: :black, position: [3, 4], symbol: "P" },
     { type: :pawn, color: :black, position: [1, 5], symbol: "P" }
   ]
+=end
 
   # Gameloop that continues until a winner is found
   def play

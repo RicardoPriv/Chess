@@ -10,7 +10,66 @@ class Pawn < Piece
   end
 
   def do_moves(coordinate, board)
-    nil
+    vertical = vertical_dir(board[coordinate[0]][coordinate[1]].color)
+    player = board[coordinate[0]][coordinate[1]].color
+    directions = [[vertical, 0]]
+
+    # normal one piece forward move
+    coordinate_movement(directions, coordinate, board)
+    # double jump if havent moved
+    pawn_double_jump(coordinate, board, player)
+    # take piece diagonally
+    pawn_diagonals(coordinate, board, player)
+    # en passant
+
+    indirect_collisions([], coordinate, board)
+  end
+
+  def coordinate_movement(directions, coordinate, board)
+    unless board[coordinate[0] + directions[0][0]][coordinate[1]].is_a?(Blank)
+      self.moves = []
+      return
+    end
+
+    super(directions, coordinate, board)
+  end
+
+  def pawn_double_jump(coordinate, board, player)
+    case player
+    when :white
+      return unless coordinate[0] == 1
+      return unless board[coordinate[0] + 1][coordinate[1]].is_a?(Blank)
+
+      moves.concat([[coordinate[0] + 2, coordinate[1]]])
+    when :black
+      return unless coordinate[0] == 6
+      return unless board[coordinate[0] - 1][coordinate[1]].is_a?(Blank)
+
+      moves.concat([[coordinate[0] - 2, coordinate[1]]])
+    end
+  end
+
+  def pawn_diagonals(coordinate, board, player)
+    vertical = vertical_dir(player)
+    directions = [[vertical, -1], [vertical, 1]]
+
+    directions.each do |r, c|
+      diag_r = coordinate[0] + r
+      diag_c = coordinate[1] + c
+
+      next if (diag_r.negative? || diag_r > 7) || (diag_c.negative? || diag_c > 7) ||
+              board[diag_r][diag_c].is_a?(Blank) || board[diag_r][diag_c].color == player
+
+      collisions.concat([[diag_r, diag_c]])
+    end
+  end
+
+  def en_passant()
+    
+  end
+
+  def vertical_dir(player)
+    player == :white ? 1 : -1
   end
 =begin
   # Returns possible pawn movements
