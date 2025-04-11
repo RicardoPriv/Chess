@@ -1,10 +1,25 @@
 require_relative "board.rb"
+require_relative "pieces/symbols.rb"
 
 module Gameloop
+  include Symbols
+
   EXIT_CONDITION = "e"
   RETURN_CONDITION = "b"
 
   TEST = [
+    # White pieces (now on bottom)
+      { type: :king, color: :white, position: [0, 4], symbol: "K" },
+      { type: :rook, color: :white, position: [0, 0], symbol: "R" },
+      { type: :rook, color: :white, position: [0, 7], symbol: "R" },
+     
+      # Black pieces (now on top)
+      { type: :king, color: :black, position: [7, 4], symbol: "K" },
+      { type: :rook, color: :black, position: [7, 7], symbol: "R" },
+      { type: :rook, color: :black, position: [7, 0], symbol: "R" },
+      { type: :bishop, color: :black, position: [5, 5], symbol: "B" }
+    ]
+=begin
     # White pieces (now on bottom)
     { type: :king, color: :white, position: [0, 4], symbol: "K" },
     { type: :rook, color: :white, position: [0, 0], symbol: "R" },
@@ -24,31 +39,7 @@ module Gameloop
     { type: :knight, color: :black, position: [5, 6], symbol: "N" },
     { type: :knight, color: :black, position: [6, 1], symbol: "N" },
     { type: :pawn, color: :black, position: [4, 4], symbol: "P" },
-    { type: :pawn, color: :black, position: [6, 5], symbol: "P" }
-  ]
-  
-=begin
-  [
-    # White pieces
-    { type: :king, color: :white, position: [7, 4], symbol: "K" },
-    { type: :rook, color: :white, position: [7, 0], symbol: "R" },
-    { type: :rook, color: :white, position: [5, 5], symbol: "R" },
-    { type: :bishop, color: :white, position: [5, 7], symbol: "B" },
-    { type: :bishop, color: :white, position: [4, 2], symbol: "B" },
-    { type: :knight, color: :white, position: [3, 6], symbol: "N" },
-    { type: :pawn, color: :white, position: [4, 4], symbol: "P" },
-    { type: :pawn, color: :white, position: [6, 3], symbol: "P" },
-    { type: :queen, color: :white, position: [5, 1], symbol: "Q" },
-
-    # Black pieces
-    { type: :king, color: :black, position: [0, 4], symbol: "K" },
-    { type: :queen, color: :black, position: [2, 3], symbol: "Q" },
-    { type: :rook, color: :black, position: [0, 7], symbol: "R" },
-    { type: :bishop, color: :black, position: [1, 2], symbol: "B" },
-    { type: :knight, color: :black, position: [2, 6], symbol: "N" },
-    { type: :knight, color: :black, position: [1, 1], symbol: "N" },
-    { type: :pawn, color: :black, position: [3, 4], symbol: "P" },
-    { type: :pawn, color: :black, position: [1, 5], symbol: "P" }
+    { type: :pawn, color: :black, position: [1, 6], symbol: "P" }
   ]
 =end
 
@@ -102,6 +93,15 @@ module Gameloop
         # Move piece on board and return the piece if one was taken
         board.move_piece(move_from, move_to)
 
+        # Logic that allows player to promote a Pawn if it reaches the end of the board
+        promote_tile = board.promotion(player)
+        unless promote_tile.empty?
+          promote_key = get_promotion_input("Enter symbol of the piece you wish to promote the Pawn to here: ")
+          return if promote_key.upcase == EXIT_CONDITION.upcase
+
+          board.change_piece_to(promote_tile, promote_key, player)
+        end
+
         # Print gameboard changes
         board.print_board
 
@@ -127,6 +127,21 @@ module Gameloop
       return nil if input == RETURN_CONDITION
 
       print("Error: Invalid move\n")
+    end
+  end
+
+  def get_promotion_input(instruction)
+    loop do
+      print("\n#{instruction}")
+      input = gets.chomp.upcase
+
+      matching_key = Symbols.constants.find { |symb| Symbols.const_get(symb) == input }
+
+      return matching_key.downcase if matching_key && input != Symbols::BLANK && 
+                                      input != Symbols::KING && input != Symbols::PAWN
+      return EXIT_CONDITION.upcase if input.upcase == EXIT_CONDITION.upcase
+
+      print("Error: Invalid symbol - Choose from #{Symbols.constants.map { |s| Symbols.const_get(s) }.compact.join(', ')}\n")
     end
   end
 

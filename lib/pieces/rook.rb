@@ -5,8 +5,11 @@ require_relative "symbols"
 class Rook < Piece
   include Symbols
 
+  attr_accessor :castle
+
   def initialize(color)
     super(Symbols::ROOK, color)
+    self.castle = true
   end
 
   # Vertical and Horixontal movement of the rook piece

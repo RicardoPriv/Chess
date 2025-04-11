@@ -25,6 +25,8 @@ class Pawn < Piece
     indirect_collisions([], coordinate, board)
   end
 
+  private
+
   def coordinate_movement(directions, coordinate, board)
     unless board[coordinate[0] + directions[0][0]][coordinate[1]].is_a?(Blank)
       self.moves = []
