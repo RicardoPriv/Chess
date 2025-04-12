@@ -18,9 +18,20 @@ class King < Piece
     coordinate_movement(directions, coordinate, board)
     indirect_collisions(directions, coordinate, board)
     castle_moves(board, in_check) if castle
+    pawn_checks(board)
   end
 
   private
+
+  def pawn_checks(board)
+    offset = color == :white ? 1 : -1
+    all_moves = moves + collisions
+
+    all_moves.each do |row, col|
+      threaten = [[row + offset, col - 1], [row + offset, col + 1]]
+      moves.delete([row, col]) if threaten.any? { |row_th, col_th| board[row_th][col_th].is_a?(Pawn) && board[row_th][col_th].color != color }
+    end
+  end
 
   def castle_moves(board, in_check)
     return unless castle || !in_check
@@ -33,7 +44,7 @@ class King < Piece
     when :white
       # Left Rook variables
       rooks.push(board[0][0])
-      coords_between.push([[0, 1], [0, 2], [0, 3]])
+      coords_between.push([[0, 2], [0, 3]])
       moves_to_push.push([0, 2])
 
       # Right Rook variables
@@ -43,7 +54,7 @@ class King < Piece
     when :black
       # Left Rook variables
       rooks.push(board[7][0])
-      coords_between.push([[7, 1], [7, 2], [7, 3]])
+      coords_between.push([[7, 2], [7, 3]])
       moves_to_push.push([7, 2])
 
       # Right Rook variables
@@ -51,6 +62,9 @@ class King < Piece
       coords_between.push([[7, 5], [7, 6]])
       moves_to_push.push([7, 6])
     end
+
+    directions = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [-1, 1], [-1, -1], [1, -1]]
+    castle = []
 
     2.times do |i|
       rook = rooks[i]
@@ -62,24 +76,40 @@ class King < Piece
 
       # Simulate king moving through the squares
       path_safe = coords_between[i].all? do |coord|
-        self.indirect_col = []
-        indirect_collisions([], coord, board)
-        indirect_col.none? do |row, col|
-          board[row][col].collisions.include?(coord) && board[row][col].color != color
+        clear_movement
+        straight_movement(directions, coord, board)
+        castle_th = collisions + indirect_col
+
+        castle_th.none? do |row, col|
+          piece = board[row][col]
+          if board[row][col].is_a?(Pawn)
+            dir = piece.color == :white ? 1 : -1
+            threatened = [[row + dir, col - 1], [row + dir, col + 1]]
+
+
+            threatened.include?(coord) && piece.color != color
+          else
+            board[row][col].collisions.include?(coord) && board[row][col].color != color
+          end
         end
+
       end
 
-      directions = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [-1, 1], [-1, -1], [1, -1]]
+      clear_movement
       case color
       when :white
+        coordinate_movement(directions, [0, 4], board)
         indirect_collisions(directions, [0, 4], board)
       when :black
+        coordinate_movement(directions, [7, 4], board)
         indirect_collisions(directions, [7, 4], board)
       end
 
       next unless path_safe
 
-      moves.push(moves_to_push[i])
+      castle.push(moves_to_push[i])
     end
+
+    moves.concat(castle) unless castle.empty?
   end
 end

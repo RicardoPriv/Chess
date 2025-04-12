@@ -9,7 +9,6 @@ module Gameloop
   EXIT_CONDITION = "e"
   RETURN_CONDITION = "b"
 
-=begin
   TEST = [
     # White pieces
     { type: :king, color: :white, position: [5, 6], symbol: "Q" },
@@ -18,10 +17,10 @@ module Gameloop
 
     # Black pieces
     { type: :king, color: :black, position: [7, 7], symbol: "K" },
-    { type: :pawn, color: :black, position: [1, 5], symbol: "R" }
+    { type: :pawn, color: :black, position: [5, 5], symbol: "R" }
   ]
-=end 
 
+=begin
   TEST = [
     # White pieces (now on bottom)
     { type: :king, color: :white, position: [0, 4], symbol: "K" },
@@ -36,8 +35,10 @@ module Gameloop
     { type: :rook, color: :black, position: [7, 0], symbol: "R" },
     { type: :bishop, color: :black, position: [5, 3], symbol: "B" },
     { type: :pawn, color: :black, position: [3, 4], symbol: "P" }, # Black pawn just moved two steps
+    { type: :pawn, color: :black, position: [2, 5], symbol: "P" }, # Black pawn just moved two steps
     { type: :pawn, color: :black, position: [1, 1], symbol: "P" } # Black pawn ready to en passant
   ]
+=end
 
 =begin
     # White pieces (now on bottom)
@@ -132,7 +133,7 @@ module Gameloop
       end
 
       p board.stalemate
-      break if board.checkmate # || board.stalemate
+      break if board.checkmate || board.stalemate
     end
 
     p "yay"

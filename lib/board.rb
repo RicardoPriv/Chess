@@ -98,7 +98,7 @@ class Board
     if piece.is_a?(King)
       king = king_from_color(piece.color)
       moves.reject! do |move|
-        king[:threats].any? { |th| th[:moves].include?(tile_to_coordinate(move)) }
+        king[:threats].any? { |th| th[:moves].include?(tile_to_coordinate(move)) && !tile_to_piece(th[:tile]).is_a?(Pawn) }
       end
       p moves
     end
@@ -118,7 +118,7 @@ class Board
     if piece.is_a?(King)
       # Sets possible King moves without accounting for threats
       moves = king[:king].moves + king[:king].collisions
-
+      p array_coordinates_to_tiles(moves)
       # Simulates moves as though king didn't exist
       # This is to account for moves that would not be in possible moves
       # Eg: without simulations - |R| | |K|+| | | | with simulation - |R| | |K| | | | |
@@ -131,13 +131,17 @@ class Board
         if simulate.is_a?(King)
           simulate.do_moves(tile_to_coordinate(threat[:tile]), board, in_check)
         elsif simulate.is_a?(Pawn)
-          simulate.do_moves(tile_to_coordinate(threat[:tile]), board, @en_passant)
+          coord = tile_to_coordinate(threat[:tile])
+          simulate.do_moves(coord, board, @en_passant)
+          vert = simulate.color == :white ? 1 : -1
+          simulate.moves.delete([coord[0] + vert, coord[1]])
         else
           simulate.do_moves(tile_to_coordinate(threat[:tile]), board)
         end
         moves -= simulate.moves
       end
-
+      p "test"
+      p array_coordinates_to_tiles(moves)
       board[king[:position][0]][king[:position][1]] = king[:king]
 
       # Removes if collisions:
@@ -288,16 +292,37 @@ class Board
   end
 
   def stalemate
+    # Find the player whose king is potentially in stalemate
     player = kings.find do |king|
       moves = king[:king].moves + king[:king].collisions
       # Check if all of the king's possible moves are either blocked or in check
-      moves.all? { |move| king[:threats].any? { |threat| threat[:moves].include?(move) } }
+      king_moves_blocked_or_in_check = moves.all? do |move|
+        king[:threats].any? { |threat| threat[:moves].include?(move) }
+      end
+  
+      # If all of the king's moves are blocked or in check, we continue to check for other moveable pieces
+      if king_moves_blocked_or_in_check
+        # Check if any piece for the player can move (excluding the king)
+        pieces = board.flatten.select { |tile| tile.is_a?(Piece) && tile.color == king[:king].color && !tile.is_a?(King) }
+        pieces.each do |piece|
+          # Get the piece's possible moves
+          piece_moves = piece.moves + piece.collisions
+          # If the piece has any valid moves that aren't blocked or in check, return false (not stalemate)
+          return false if piece_moves.any? { |move| !king[:threats].any? { |threat| threat[:moves].include?(move) } }
+        end
+  
+        # If no piece has a valid move and the king is blocked or in check, it's a stalemate
+        true
+      else
+        # The king has at least one valid move, no stalemate
+        false
+      end
     end
-
-    # If we find a player where all their king's moves are blocked or in check, return true
+  
+    # If we found a player in stalemate, return true; otherwise, return false
     player ? true : false
   end
-
+  
   def print_board
     board = self.board.reverse.dup
     board.each_with_index do |row, i|
