@@ -8,17 +8,33 @@ module Gameloop
   RETURN_CONDITION = "b"
 
   TEST = [
+    # White pieces
+    { type: :king, color: :white, position: [5, 6], symbol: "Q" },
+    { type: :rook, color: :white, position: [6, 6], symbol: "R" },
+  
+    # Black pieces
+    { type: :king, color: :black, position: [7, 7], symbol: "K" }
+  ]
+  
+=begin
+  TEST = [
     # White pieces (now on bottom)
-      { type: :king, color: :white, position: [0, 4], symbol: "K" },
-      { type: :rook, color: :white, position: [0, 0], symbol: "R" },
-      { type: :rook, color: :white, position: [0, 7], symbol: "R" },
-     
-      # Black pieces (now on top)
-      { type: :king, color: :black, position: [7, 4], symbol: "K" },
-      { type: :rook, color: :black, position: [7, 7], symbol: "R" },
-      { type: :rook, color: :black, position: [7, 0], symbol: "R" },
-      { type: :bishop, color: :black, position: [5, 5], symbol: "B" }
-    ]
+    { type: :king, color: :white, position: [0, 4], symbol: "K" },
+    { type: :rook, color: :white, position: [0, 0], symbol: "R" },
+    { type: :rook, color: :white, position: [0, 7], symbol: "R" },
+    { type: :pawn, color: :white, position: [4, 1], symbol: "P" }, # White pawn ready to en passant
+    { type: :pawn, color: :white, position: [1, 5], symbol: "P" }, # White pawn just moved two steps
+
+    # Black pieces (now on top)
+    { type: :king, color: :black, position: [7, 4], symbol: "K" },
+    { type: :rook, color: :black, position: [7, 7], symbol: "R" },
+    { type: :rook, color: :black, position: [7, 0], symbol: "R" },
+    { type: :bishop, color: :black, position: [5, 3], symbol: "B" },
+    { type: :pawn, color: :black, position: [3, 4], symbol: "P" }, # Black pawn just moved two steps
+    { type: :pawn, color: :black, position: [1, 1], symbol: "P" } # Black pawn ready to en passant
+  ]
+=end
+
 =begin
     # White pieces (now on bottom)
     { type: :king, color: :white, position: [0, 4], symbol: "K" },
@@ -111,8 +127,8 @@ module Gameloop
         break
       end
 
-      p board.checkmate
-      break if board.checkmate
+      p board.stalemate
+      break if board.checkmate || board.stalemate
     end
 
     p "yay"

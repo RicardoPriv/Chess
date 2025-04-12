@@ -7,12 +7,12 @@ Dir["#{__dir__}/pieces/*.rb"].each { |file| require_relative file }
 class Board
   attr_accessor :board, :kings, :in_check
 
-
   MOVEABLE_COLOR = :yellow
   MOVEABLE_SYMBOL = "+"
   DIMENSION = 8
 
   def initialize
+    @en_passant = nil
     self.board = Array.new(DIMENSION) { Array.new(DIMENSION) { Blank.new } }
     setup_board
   end
@@ -27,8 +27,8 @@ class Board
     board[7] = [Rook.new(:black), Knight.new(:black), Bishop.new(:black), Queen.new(:black),
                 King.new(:black), Bishop.new(:black), Knight.new(:black), Rook.new(:black)]
 
-    board[1].each_with_index { |piece, index| piece.do_moves([1, index], board) }
-    board[6].each_with_index { |piece, index| piece.do_moves([6, index], board) }
+    board[1].each_with_index { |piece, index| piece.do_moves([1, index], board, @en_passant) }
+    board[6].each_with_index { |piece, index| piece.do_moves([6, index], board, @en_passant) }
     knights_positions = [[0, 1], [0, 6], [7, 1], [7, 6]]
     knights_positions.each { |p| board[p[0]][p[1]].do_moves(p, board) }
 
@@ -80,6 +80,8 @@ class Board
         simulate = piece_from_tile(threat[:tile]).dup
         if simulate.is_a?(King)
           simulate.do_moves(tile_to_coordinate(threat[:tile]), board, in_check)
+        elsif simulate.is_a?(Pawn)
+          simulate.do_moves(tile_to_coordinate(threat[:tile]), board, @en_passant)
         else
           simulate.do_moves(tile_to_coordinate(threat[:tile]), board)
         end
@@ -218,55 +220,17 @@ class Board
     update_possible_moves(tile_move_to, piece.color)
     piece = piece_from_tile(tile_move_to)
     to_update += piece.collisions + piece.indirect_col
+
+    # Check for special moves
+    king_castle(piece, tile_move_to)
+    en_passant(piece, tile_move_from, tile_move_to)
+    p @en_passant
+
     to_update.each { |t| update_possible_moves(coordinate_to_tile(t), piece_from_tile(coordinate_to_tile(t)).color) }
     add_threats(tile_move_to)
 
     # Updates check
     check
-
-    # Function that carries out a castle if the player is castling
-    king_castle(piece, tile_move_to)
-  end
-
-  def king_castle(piece, king_move)
-    # Checks if piece can castle
-    # Changes possibility to false to account for castling only allowed if piece hasn't moved
-    return unless piece.respond_to?(:castle) && piece.castle
-
-    piece.castle = false
-    # Checks if piece moving is a King since only need to account for Rook if King is castling
-    return unless piece.is_a?(King)
-
-    # Set appropriate positions for castle depending on color and side
-    rook_piece = nil
-    board_corner = []
-    castle_position = []
-
-    case king_move
-    when "C1"
-      rook_piece = board[0][0].dup
-      board_corner = [0, 0]
-      castle_position = [0, 3]
-    when "G1"
-      rook_piece = board[0][7].dup
-      board_corner = [0, 7]
-      castle_position = [0, 5]
-    when "C8"
-      rook_piece = board[7][0].dup
-      board_corner = [7, 0]
-      castle_position = [7, 3]
-    when "G8"
-      rook_piece = board[7][7].dup
-      board_corner = [7, 7]
-      castle_position = [7, 5]
-    end
-
-    return unless rook_piece.is_a?(Rook) && rook_piece.color == piece.color && rook_piece.castle
-
-    # Move Rook to compensate for castle
-    board[board_corner[0]][board_corner[1]] = Blank.new
-    board[castle_position[0]][castle_position[1]] = rook_piece
-    rook_piece.do_moves(castle_position, board)
   end
 
   # Changes the piece on the board at a given tile to the given key (only works to change to pieces, not to Blank)
@@ -277,6 +241,7 @@ class Board
     case piece_symbol
     when :pawn
       new_piece = Pawn.new(player)
+      new_piece.do_moves(coord, board, @en_passant)
     when :rook
       new_piece = Rook.new(player)
     when :knight
@@ -290,7 +255,7 @@ class Board
       new_piece.do_moves(coord, board, in_check)
     end
 
-    new_piece.do_moves(coord, board) unless new_piece.is_a?(King)
+    new_piece.do_moves(coord, board) unless new_piece.is_a?(King) || new_piece.is_a?(Pawn)
     board[coord[0]][coord[1]] = new_piece
   end
 
@@ -303,6 +268,18 @@ class Board
 
     player ? player[:king].color : nil
   end
+
+  def stalemate
+    player = kings.find do |king|
+      moves = king[:king].moves + king[:king].collisions
+      # Check if all of the king's possible moves are either blocked or in check
+      moves.all? { |move| king[:threats].any? { |threat| threat[:moves].include?(move) } }
+    end
+  
+    # If we find a player where all their king's moves are blocked or in check, return true
+    player ? true : false
+  end
+  
 
   # Returns the tile of a pawn that is ready for promotion
   # Won't return multiple since shouldn't be possible in a standard chess game
@@ -372,6 +349,66 @@ class Board
     self.in_check = king_in_check ? king_in_check[:king].color : nil
   end
 
+  def king_castle(piece, king_move)
+    # Checks if piece can castle
+    # Changes possibility to false to account for castling only allowed if piece hasn't moved
+    return unless piece.respond_to?(:castle) && piece.castle
+
+    piece.castle = false
+    # Checks if piece moving is a King since only need to account for Rook if King is castling
+    return unless piece.is_a?(King)
+
+    # Set appropriate positions for castle depending on color and side
+    rook_piece = nil
+    board_corner = []
+    castle_position = []
+
+    case king_move
+    when "C1"
+      rook_piece = board[0][0].dup
+      board_corner = [0, 0]
+      castle_position = [0, 3]
+    when "G1"
+      rook_piece = board[0][7].dup
+      board_corner = [0, 7]
+      castle_position = [0, 5]
+    when "C8"
+      rook_piece = board[7][0].dup
+      board_corner = [7, 0]
+      castle_position = [7, 3]
+    when "G8"
+      rook_piece = board[7][7].dup
+      board_corner = [7, 7]
+      castle_position = [7, 5]
+    end
+
+    return unless rook_piece.is_a?(Rook) && rook_piece.color == piece.color && rook_piece.castle
+
+    # Move Rook to compensate for castle
+    board[board_corner[0]][board_corner[1]] = Blank.new
+    board[castle_position[0]][castle_position[1]] = rook_piece
+    rook_piece.do_moves(castle_position, board)
+  end
+
+  def en_passant(piece, move_from, move_to)
+    p @en_passant
+    if piece.is_a?(Pawn) && !@en_passant.nil?
+      from_coord = tile_to_coordinate(move_from)
+      to_coord = tile_to_coordinate(move_to)
+
+      return unless piece.color != board[from_coord[0]][to_coord[1]].color
+
+      row_diff = (from_coord[0] - to_coord[0]).abs
+      col_diff = (from_coord[1] - to_coord[1]).abs
+
+      return if (row_diff == 1 && col_diff == 1)
+
+      board[from_coord[0]][to_coord[1]] = Blank.new
+    end
+
+    @en_passant = piece.is_a?(Pawn) ? tile_to_coordinate(move_from) : nil
+  end
+
   # Updates the possible movement for the piece at a given tile: Changes moves and collisions for the piece
   def update_possible_moves(tile, player)
     piece = tile_to_piece(tile)
@@ -383,7 +420,7 @@ class Board
 
     case piece
     when Pawn
-      piece.do_moves(coordinate, board)
+      piece.do_moves(coordinate, board, @en_passant)
     when Rook
       piece.do_moves(coordinate, board)
     when Knight
@@ -432,7 +469,7 @@ class Board
   # Adds the tile to the kings threats if it has a valid threat
   def add_threats(tile)
     piece = tile_to_piece(tile)
-    return if piece.is_a?(Blank) || piece.is_a?(King)
+    return if piece.is_a?(Blank)
 
     player = piece.color == :white ? :black : :white
     king = kings.find { |k| k[:king].color == player }
