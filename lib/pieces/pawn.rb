@@ -29,6 +29,8 @@ class Pawn < Piece
   private
 
   def coordinate_movement(directions, coordinate, board)
+    return unless within_board([coordinate[0] + directions[0][0], coordinate[1]])
+
     unless board[coordinate[0] + directions[0][0]][coordinate[1]].is_a?(Blank)
       self.moves = []
       return

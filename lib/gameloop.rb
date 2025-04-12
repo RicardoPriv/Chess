@@ -1,22 +1,27 @@
 require_relative "board.rb"
+require_relative "mechanics.rb"
 require_relative "pieces/symbols.rb"
 
 module Gameloop
   include Symbols
+  include Mechanics
 
   EXIT_CONDITION = "e"
   RETURN_CONDITION = "b"
 
+=begin
   TEST = [
     # White pieces
     { type: :king, color: :white, position: [5, 6], symbol: "Q" },
     { type: :rook, color: :white, position: [6, 6], symbol: "R" },
-  
+    { type: :pawn, color: :white, position: [6, 4], symbol: "R" },
+
     # Black pieces
-    { type: :king, color: :black, position: [7, 7], symbol: "K" }
+    { type: :king, color: :black, position: [7, 7], symbol: "K" },
+    { type: :pawn, color: :black, position: [1, 5], symbol: "R" }
   ]
-  
-=begin
+=end 
+
   TEST = [
     # White pieces (now on bottom)
     { type: :king, color: :white, position: [0, 4], symbol: "K" },
@@ -33,7 +38,6 @@ module Gameloop
     { type: :pawn, color: :black, position: [3, 4], symbol: "P" }, # Black pawn just moved two steps
     { type: :pawn, color: :black, position: [1, 1], symbol: "P" } # Black pawn ready to en passant
   ]
-=end
 
 =begin
     # White pieces (now on bottom)
@@ -62,7 +66,7 @@ module Gameloop
   # Gameloop that continues until a winner is found
   def play
     board = Board.new
-    board.set_board(TEST)
+    board.setup_board(TEST)
     player = :white
     board.print_board
 
@@ -110,7 +114,7 @@ module Gameloop
         board.move_piece(move_from, move_to)
 
         # Logic that allows player to promote a Pawn if it reaches the end of the board
-        promote_tile = board.promotion(player)
+        promote_tile = promotion(player, board.board)
         unless promote_tile.empty?
           promote_key = get_promotion_input("Enter symbol of the piece you wish to promote the Pawn to here: ")
           return if promote_key.upcase == EXIT_CONDITION.upcase
@@ -128,7 +132,7 @@ module Gameloop
       end
 
       p board.stalemate
-      break if board.checkmate || board.stalemate
+      break if board.checkmate # || board.stalemate
     end
 
     p "yay"

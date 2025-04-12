@@ -53,9 +53,32 @@ class King < Piece
     end
 
     2.times do |i|
-      next if !rooks[i].is_a?(Rook) || (rooks[i].is_a?(Rook) && !rooks[i].castle)
+      rook = rooks[i]
+      next unless rook.is_a?(Rook) && rook.castle
 
-      coords_between[i].each { |coord| return unless board[coord[0]][coord[1]].is_a?(Blank) }
+      # Check that all squares between king and rook are blank
+      path_clear = coords_between[i].all? { |r, c| board[r][c].is_a?(Blank) }
+      next unless path_clear
+
+      # Simulate king moving through the squares
+      path_safe = coords_between[i].all? do |coord|
+        self.indirect_col = []
+        indirect_collisions([], coord, board)
+        indirect_col.none? do |row, col|
+          board[row][col].collisions.include?(coord) && board[row][col].color != color
+        end
+      end
+
+      directions = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [-1, 1], [-1, -1], [1, -1]]
+      case color
+      when :white
+        indirect_collisions(directions, [0, 4], board)
+      when :black
+        indirect_collisions(directions, [7, 4], board)
+      end
+
+      next unless path_safe
+
       moves.push(moves_to_push[i])
     end
   end
