@@ -14,76 +14,77 @@ class Board
   MOVEABLE_SYMBOL = "+"
   DIMENSION = 8
 
-  def initialize
-    @en_passant = nil
+  def initialize(save_game = [])
     self.board = Array.new(DIMENSION) { Array.new(DIMENSION) { Blank.new } }
-    setup_board([])
+
+    if save_game.nil? || save_game.empty?
+      @en_passant = nil
+      setup_board([])
+    else
+      @en_passant = save_game[:en_passant]
+      in_check = save_game[:in_check]
+      setup_board(save_game[:board])
+    end
   end
 
-  def setup_board(custom_pieces)
+  def setup_board(custom_board)
     self.kings = [{ king: King.new(:white), position: [0, 4], threats: [] },
                   { king: King.new(:black), position: [7, 4], threats: [] }]
 
-    p "Setting up the board..."
-
-    # Initialize the board with blank pieces
     self.board = Array.new(DIMENSION) { Array.new(DIMENSION) { Blank.new } }
 
-    if custom_pieces.empty?
-      # Set up standard chess starting pieces
+    if custom_board.empty?
+      # Default full setup
       board[0] = [Rook.new(:white), Knight.new(:white), Bishop.new(:white), Queen.new(:white),
                   King.new(:white), Bishop.new(:white), Knight.new(:white), Rook.new(:white)]
       board[1] = Array.new(DIMENSION) { Pawn.new(:white) }
-
       board[6] = Array.new(DIMENSION) { Pawn.new(:black) }
       board[7] = [Rook.new(:black), Knight.new(:black), Bishop.new(:black), Queen.new(:black),
                   King.new(:black), Bishop.new(:black), Knight.new(:black), Rook.new(:black)]
     else
-      # Place custom pieces on the board
-      custom_pieces.each do |piece|
-        row, col = piece[:position]
-        piece_obj = case piece[:type]
-                    when :rook then Rook.new(piece[:color])
-                    when :knight then Knight.new(piece[:color])
-                    when :bishop then Bishop.new(piece[:color])
-                    when :queen then Queen.new(piece[:color])
-                    when :king
-                      piece_obj = King.new(piece[:color])
-                      king = kings.find { |k| k[:king].color == piece[:color] }
-                      king[:king] = piece_obj
-                      king[:position] = piece[:position]
-                      piece_obj
-                    when :pawn then Pawn.new(piece[:color])
-                    end
+      # Rebuild board from saved data
+      custom_board.each_with_index do |row, r|
+        row.each_with_index do |cell, c|
+          next if cell.nil?
 
-        board[row][col] = piece_obj if piece_obj
+          piece_obj = case cell[:type].to_sym
+                      when :rook   then Rook.new(cell[:color].to_sym)
+                      when :knight then Knight.new(cell[:color].to_sym)
+                      when :bishop then Bishop.new(cell[:color].to_sym)
+                      when :queen  then Queen.new(cell[:color].to_sym)
+                      when :king
+                        king_obj = King.new(cell[:color].to_sym)
+                        king = kings.find { |k| k[:king].color == cell[:color].to_sym }
+                        king[:king] = king_obj
+                        king[:position] = cell[:position]
+                        king_obj
+                      when :pawn   then Pawn.new(cell[:color].to_sym)
+                      end
+
+          board[r][c] = piece_obj
+        end
       end
     end
 
-    # Now, iterate over the board and update threats for each piece based on the position
+    # Add initial threat placeholders
     board.each_with_index do |row, r|
       row.each_with_index do |cell, c|
-        # Skip Blank cells
         next if cell.is_a?(Blank)
 
-        # Determine which king's threats to update
-        color = cell.color == :white ? :black : :white
+        enemy_color = cell.color == :white ? :black : :white
         kings.each do |king|
-          if king[:king].color == color
-            # Add a threat entry with the current tile and empty moves for now
+          if king[:king].color == enemy_color
             king[:threats] << { tile: coordinate_to_tile([r, c]), moves: [] }
           end
         end
       end
     end
 
-    # After setting up all pieces, update the possible moves for each king
+    # Update threat moves
     kings.each { |king| update_possible_moves(coordinate_to_tile(king[:position]), king[:king].color) }
-
-    # Update possible moves for all pieces on the board
     board.each_with_index do |row, r|
       row.each_with_index do |cell, c|
-        update_possible_moves(coordinate_to_tile([r, c]), cell.color)
+        update_possible_moves(coordinate_to_tile([r, c]), cell.color) unless cell.is_a?(Blank)
       end
     end
   end
@@ -94,13 +95,11 @@ class Board
     moves = array_coordinates_to_tiles(piece.moves)
     piece.collisions.each { |c| moves.push(coordinate_to_tile(c)) if opponent_piece?(c, piece.color) }
 
-    p moves
     if piece.is_a?(King)
       king = king_from_color(piece.color)
       moves.reject! do |move|
         king[:threats].any? { |th| th[:moves].include?(tile_to_coordinate(move)) && !tile_to_piece(th[:tile]).is_a?(Pawn) }
       end
-      p moves
     end
 
     moves
@@ -118,7 +117,7 @@ class Board
     if piece.is_a?(King)
       # Sets possible King moves without accounting for threats
       moves = king[:king].moves + king[:king].collisions
-      p array_coordinates_to_tiles(moves)
+
       # Simulates moves as though king didn't exist
       # This is to account for moves that would not be in possible moves
       # Eg: without simulations - |R| | |K|+| | | | with simulation - |R| | |K| | | | |
@@ -140,8 +139,6 @@ class Board
         end
         moves -= simulate.moves
       end
-      p "test"
-      p array_coordinates_to_tiles(moves)
       board[king[:position][0]][king[:position][1]] = king[:king]
 
       # Removes if collisions:
@@ -181,7 +178,6 @@ class Board
         # Get path from threat to king (excluding threat tile itself)
         blocked_coords = coords_between(king_pos, th_coord) & piece.moves
         moves.concat(blocked_coords)
-        p moves
       end
     end
 
@@ -299,7 +295,7 @@ class Board
       king_moves_blocked_or_in_check = moves.all? do |move|
         king[:threats].any? { |threat| threat[:moves].include?(move) }
       end
-  
+
       # If all of the king's moves are blocked or in check, we continue to check for other moveable pieces
       if king_moves_blocked_or_in_check
         # Check if any piece for the player can move (excluding the king)
@@ -310,7 +306,7 @@ class Board
           # If the piece has any valid moves that aren't blocked or in check, return false (not stalemate)
           return false if piece_moves.any? { |move| !king[:threats].any? { |threat| threat[:moves].include?(move) } }
         end
-  
+
         # If no piece has a valid move and the king is blocked or in check, it's a stalemate
         true
       else
@@ -318,11 +314,37 @@ class Board
         false
       end
     end
-  
+
     # If we found a player in stalemate, return true; otherwise, return false
     player ? true : false
   end
-  
+
+  # Serializes the board into a state that can be saved in a json file
+  def serialize
+    output = {
+      board: [],
+      in_check: in_check,
+      en_passant: @en_passant
+    }
+
+    # Turns the objects within the board into hashes store-able in a json
+    output[:board] = board.map.with_index do |row, r|
+      row.map.with_index do |cell, c|
+        if cell.is_a?(Blank)
+          nil
+        else
+          {
+            type: cell.class.name.split("::").last.downcase.to_sym,
+            position: [r, c],
+            color: cell.color
+          }
+        end
+      end
+    end
+
+    output
+  end
+
   def print_board
     board = self.board.reverse.dup
     board.each_with_index do |row, i|
