@@ -134,6 +134,12 @@ class Board
           simulate.do_moves(coord, board, @en_passant)
           vert = simulate.color == :white ? 1 : -1
           simulate.moves.delete([coord[0] + vert, coord[1]])
+
+          if coord[0] == 1 && simulate.color == :white
+            simulate.moves.delete([coord[0] + vert * 2, coord[1]])
+          elsif coord[0] == 6 && simulate.color == :black
+            simulate.moves.delete([coord[0] + vert * 2, coord[1]])
+          end
         else
           simulate.do_moves(tile_to_coordinate(threat[:tile]), board)
         end

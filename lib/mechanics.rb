@@ -56,7 +56,6 @@ module Mechanics
   end
 
   def en_passant(piece, move_from, move_to, board)
-    p @en_passant
     if piece.is_a?(Pawn) && !@en_passant.nil?
       from_coord = tile_to_coordinate(move_from)
       to_coord = tile_to_coordinate(move_to)
