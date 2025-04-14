@@ -1,6 +1,6 @@
 # Ruby Chess
 
-A fully-functional, object-oriented Chess game built in Ruby. This project was done with the intentio to learn Ruby and to use different concepts in a full project.
+A fully-functional, object-oriented Chess game built in Ruby. This project was done with the intention to learn Ruby and to use different concepts in a full project.
 
 ---
 
@@ -26,7 +26,7 @@ A fully-functional, object-oriented Chess game built in Ruby. This project was d
 | Class        | Responsibility |
 |--------------|----------------|
 | `Board`      | Manages the game grid, piece positions, threats, legal move validation |
-| `Piece` & subclasses | Encapsulates movement rules and state for each chess piece |
+| `Piece & subclasses` | Encapsulates movement rules and state for each chess piece |
 | `Mechanics`  | Castling, En paasant and Promotion logic for the board |
 | `Game`       | Coordinates the turn flow, player interactions, and win/loss conditions |
 | `Helpers`    | Manages coordinate, tile and piece translation |
@@ -74,4 +74,4 @@ A fully-functional, object-oriented Chess game built in Ruby. This project was d
 - At the destination prompt, you can:
   - Type `b` to go back and reselect the piece
 - Possible saving by typing "save" at any prompt (besides promotion) after starting a game
-- Includes exit option to exit the program at any point by typing "e"
+- Includes exit option to exit the program at any point by typing `e`
