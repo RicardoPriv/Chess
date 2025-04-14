@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Helper functions for conversions
 module Helpers
   # takes the tile (eg: A1) and retrieves the piece hash at that position on the board
@@ -42,6 +44,7 @@ module Helpers
     false
   end
 
+  # Returns the piece at a given tile
   def piece_from_tile(tile)
     coordinate = tile_to_coordinate(tile)
     board[coordinate[0]][coordinate[1]]

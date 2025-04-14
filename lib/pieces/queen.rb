@@ -1,5 +1,7 @@
-require_relative "../piece.rb"
-require_relative "symbols"
+# frozen_string_literal: true
+
+require_relative '../piece'
+require_relative 'symbols'
 
 # Queen chess piece class
 class Queen < Piece
@@ -9,6 +11,7 @@ class Queen < Piece
     super(Symbols::QUEEN, color)
   end
 
+  # All directions movement for the Queen piece
   def do_moves(coordinate, board)
     directions = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [-1, 1], [-1, -1], [1, -1]]
     straight_movement(directions, coordinate, board)

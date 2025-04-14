@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # spec/helpers_spec.rb
 require_relative '../lib/board'
 require_relative '../lib/helpers'
@@ -44,7 +46,7 @@ describe Helpers do
   describe '#array_coordinates_to_tiles' do
     it 'converts an array of coordinates into chess tiles' do
       coords = [[0, 0], [1, 1], [7, 7]]
-      expect(helpers.array_coordinates_to_tiles(coords)).to eq(['A1', 'B2', 'H8'])
+      expect(helpers.array_coordinates_to_tiles(coords)).to eq(%w[A1 B2 H8])
     end
   end
 

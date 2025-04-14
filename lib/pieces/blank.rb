@@ -1,5 +1,7 @@
-require_relative "../piece.rb"
-require_relative "symbols"
+# frozen_string_literal: true
+
+require_relative '../piece'
+require_relative 'symbols'
 
 # Blank chess piece class
 class Blank < Piece

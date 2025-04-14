@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Stock standard piece functions that may be used for any chess piece
 class Piece
   attr_accessor :symbol, :color, :collisions, :moves, :indirect_col
@@ -10,6 +12,7 @@ class Piece
     self.indirect_col = []
   end
 
+  # Determines if the given coordinates are within the board
   def within_board(coordinate)
     return true if (coordinate[0] >= 0 && coordinate[0] < 8) && (coordinate[1] >= 0 && coordinate[1] < 8)
 
@@ -105,6 +108,7 @@ class Piece
     end
   end
 
+  # Clears all movement
   def clear_movement
     self.moves = []
     self.collisions = []

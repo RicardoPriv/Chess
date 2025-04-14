@@ -1,5 +1,7 @@
-require_relative "../piece.rb"
-require_relative "symbols"
+# frozen_string_literal: true
+
+require_relative '../piece'
+require_relative 'symbols'
 
 # Pawn chess piece class
 class Pawn < Piece
@@ -9,6 +11,7 @@ class Pawn < Piece
     super(Symbols::PAWN, color)
   end
 
+  # Pawn movement which includes: 1 space, 2 space start movement, diagonal taking and en passant
   def do_moves(coordinate, board, en_passant)
     vertical = vertical_dir(board[coordinate[0]][coordinate[1]].color)
     player = board[coordinate[0]][coordinate[1]].color
@@ -28,6 +31,7 @@ class Pawn < Piece
 
   private
 
+  # Forward movement of the pawn
   def coordinate_movement(directions, coordinate, board)
     return unless within_board([coordinate[0] + directions[0][0], coordinate[1]])
 
@@ -39,6 +43,7 @@ class Pawn < Piece
     super(directions, coordinate, board)
   end
 
+  # 2 space movement if Pawn is at starting position
   def pawn_double_jump(coordinate, board, player)
     case player
     when :white
@@ -54,6 +59,7 @@ class Pawn < Piece
     end
   end
 
+  # Adds in diagonal movement if there is a possible piece to take for the Pawn
   def pawn_diagonals(coordinate, board, player)
     vertical = vertical_dir(player)
     directions = [[vertical, -1], [vertical, 1]]
@@ -69,6 +75,7 @@ class Pawn < Piece
     end
   end
 
+  # Adds in the movement for en passant if there is a possible piece for en passant to take place
   def en_passant(coordinate, board, player, en_passant)
     return if en_passant.nil?
 

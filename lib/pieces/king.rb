@@ -1,5 +1,7 @@
-require_relative "../piece.rb"
-require_relative "symbols"
+# frozen_string_literal: true
+
+require_relative '../piece'
+require_relative 'symbols'
 
 # King chess piece class
 class King < Piece
@@ -23,16 +25,20 @@ class King < Piece
 
   private
 
+  # Removes movement from moves if the tile is threatened by a pawn
   def pawn_checks(board)
     offset = color == :white ? 1 : -1
     all_moves = moves + collisions
 
     all_moves.each do |row, col|
       threaten = [[row + offset, col - 1], [row + offset, col + 1]]
-      moves.delete([row, col]) if threaten.any? { |row_th, col_th| board[row_th][col_th].is_a?(Pawn) && board[row_th][col_th].color != color }
+      moves.delete([row, col]) if threaten.any? do |row_th, col_th|
+        board[row_th][col_th].is_a?(Pawn) && board[row_th][col_th].color != color
+      end
     end
   end
 
+  # Adds in the possible movement to castle if King has a castle capability
   def castle_moves(board, in_check)
     return unless castle || !in_check
 
@@ -40,6 +46,7 @@ class King < Piece
     coords_between = []
     moves_to_push = []
 
+    # Adds in castling relevant coordinates dependant on King color
     case color
     when :white
       # Left Rook variables
@@ -63,9 +70,11 @@ class King < Piece
       moves_to_push.push([7, 6])
     end
 
+    # King movement directions
     directions = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [-1, 1], [-1, -1], [1, -1]]
     castle = []
 
+    # Determines castle capability
     2.times do |i|
       rook = rooks[i]
       next unless rook.is_a?(Rook) && rook.castle
@@ -86,13 +95,11 @@ class King < Piece
             dir = piece.color == :white ? 1 : -1
             threatened = [[row + dir, col - 1], [row + dir, col + 1]]
 
-
             threatened.include?(coord) && piece.color != color
           else
             board[row][col].collisions.include?(coord) && board[row][col].color != color
           end
         end
-
       end
 
       clear_movement

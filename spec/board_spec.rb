@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../lib/board'
 
 describe Board do
@@ -42,81 +44,81 @@ describe Board do
 
   let(:board) { Board.new }
 
-  describe "#get_possible_moves" do
-    it "returns valid moves for a knight" do
-      moves = board.get_possible_moves("B1")
-      expect(moves).to include("A3", "C3")
+  describe '#get_possible_moves' do
+    it 'returns valid moves for a knight' do
+      moves = board.get_possible_moves('B1')
+      expect(moves).to include('A3', 'C3')
     end
   end
 
-  describe "#get_in_check_moves" do
-    it "returns legal moves to block or escape check" do
+  describe '#get_in_check_moves' do
+    it 'returns legal moves to block or escape check' do
       board = Board.new
 
-      board.move_piece("E2", "E4")
-      board.move_piece("D7", "D6")
-      board.move_piece("D1", "E2")
-      board.move_piece("F7", "F6")
-      board.move_piece("E2", "H5")
-      moves = board.get_in_check_moves("E8")
+      board.move_piece('E2', 'E4')
+      board.move_piece('D7', 'D6')
+      board.move_piece('D1', 'E2')
+      board.move_piece('F7', 'F6')
+      board.move_piece('E2', 'H5')
+      moves = board.get_in_check_moves('E8')
 
       # Now, test for moves to block or escape the check
-      expect(moves).to include("D7") # Valid move to escape check
+      expect(moves).to include('D7') # Valid move to escape check
     end
   end
 
-  describe "#add_possible_moves_colors" do
-    it "colors moveable blank tiles" do
-      moves = board.get_possible_moves("B1")
+  describe '#add_possible_moves_colors' do
+    it 'colors moveable blank tiles' do
+      moves = board.get_possible_moves('B1')
       board.add_possible_moves_colors(moves)
-      colored_tile = board.tile_to_coordinate("C3")
+      colored_tile = board.tile_to_coordinate('C3')
       tile = board.board[colored_tile[0]][colored_tile[1]]
       expect(tile.color).to eq(Board::MOVEABLE_COLOR)
       expect(tile.symbol).to eq(Board::MOVEABLE_SYMBOL)
     end
   end
 
-  describe "#revert_possible_moves_colors" do
-    it "reverts colorized move tiles" do
-      moves = board.get_possible_moves("B1")
+  describe '#revert_possible_moves_colors' do
+    it 'reverts colorized move tiles' do
+      moves = board.get_possible_moves('B1')
       board.add_possible_moves_colors(moves)
-      board.revert_possible_moves_colors("B1", :white)
-      coord = board.tile_to_coordinate("C3")
+      board.revert_possible_moves_colors('B1', :white)
+      coord = board.tile_to_coordinate('C3')
       expect(board.board[coord[0]][coord[1]].color).not_to eq(Board::MOVEABLE_COLOR)
     end
   end
 
-  describe "#move_piece" do
-    it "moves a knight from B1 to C3" do
-      board.move_piece("B1", "C3")
-      expect(board.tile_to_piece("C3")).to be_a(Knight)
-      expect(board.tile_to_piece("B1")).to be_a(Blank)
+  describe '#move_piece' do
+    it 'moves a knight from B1 to C3' do
+      board.move_piece('B1', 'C3')
+      expect(board.tile_to_piece('C3')).to be_a(Knight)
+      expect(board.tile_to_piece('B1')).to be_a(Blank)
     end
   end
 
-  describe "#change_piece_to" do
-    it "promotes pawn to queen at given tile" do
+  describe '#change_piece_to' do
+    it 'promotes pawn to queen at given tile' do
       board.board[6][0] = Blank.new
       board.board[7][0] = Pawn.new(:white)
-      board.change_piece_to("A8", :queen, :white)
-      expect(board.tile_to_piece("A8")).to be_a(Queen)
+      board.change_piece_to('A8', :queen, :white)
+      expect(board.tile_to_piece('A8')).to be_a(Queen)
     end
   end
 
-  describe "#checkmate" do
-    it "detects checkmate" do
+  describe '#checkmate' do
+    it 'detects checkmate' do
       # Fool's mate setup
       board = Board.new
-      board.move_piece("F2", "F3")
-      board.move_piece("E7", "E5")
-      board.move_piece("G2", "G4")
-      board.move_piece("D8", "H4")
+      board.move_piece('F2', 'F3')
+      board.move_piece('E7', 'E5')
+      board.move_piece('G2', 'G4')
+      board.move_piece('D8', 'H4')
       expect(board.checkmate).to eq(:white)
     end
   end
 
-  describe "#check" do
-    it "sets in_check when king is attacked by a piece" do
+  describe '#check' do
+    it 'sets in_check when king is attacked by a piece' do
       board = Board.new
 
       board.board[7][4] = Blank.new
@@ -124,15 +126,14 @@ describe Board do
       board.board[5][5] = Pawn.new(:black)
       board.board[4][4] = King.new(:black)
 
-      board.move_piece("D2", "D4")
+      board.move_piece('D2', 'D4')
 
       expect(board.in_check).to eq(:black)
-
     end
   end
 
-  describe "#stalemate" do
-    it "returns true when stalemate occurs" do
+  describe '#stalemate' do
+    it 'returns true when stalemate occurs' do
       board = Board.new
       board.board = Array.new(8) { Array.new(8) { Blank.new } }
       board.board[0][7] = King.new(:black)
@@ -147,8 +148,8 @@ describe Board do
     end
   end
 
-  describe "#serialize" do
-    it "returns a hash representing the board state" do
+  describe '#serialize' do
+    it 'returns a hash representing the board state' do
       result = board.serialize
       expect(result).to be_a(Hash)
       expect(result[:board]).to be_a(Array)
@@ -156,19 +157,19 @@ describe Board do
     end
   end
 
-  describe "#print_board" do
-    it "prints the board" do
+  describe '#print_board' do
+    it 'prints the board' do
       expect { board.print_board }.to output(/A|B|C|D|E|F|G|H/).to_stdout
     end
   end
 
-  describe "#valid_player_piece" do
+  describe '#valid_player_piece' do
     it "returns true for player's own piece" do
-      expect(board.valid_player_piece("A2", :white)).to be true
+      expect(board.valid_player_piece('A2', :white)).to be true
     end
 
     it "returns false for opponent's piece" do
-      expect(board.valid_player_piece("A7", :white)).to be false
+      expect(board.valid_player_piece('A7', :white)).to be false
     end
   end
 end
