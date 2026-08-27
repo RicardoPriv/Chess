@@ -1,77 +1,93 @@
 # Ruby Chess
 
-A fully-functional, object-oriented Chess game built in Ruby. This project was done with the intention to learn Ruby and to use different concepts in a full project.
+A terminal-based chess game written in Ruby, built as an object-oriented programming project. The game implements the main rules of chess, validates legal moves, tracks game-ending states, and supports saving and reloading games from disk.
 
----
+This repository is intended to show practical Ruby design, domain modelling, command-line interaction, test coverage, and file-based persistence.
+
+## Screenshots
+
+| New game | Legal move highlighting |
+|----------|-------------------------|
+| ![Initial chess board in the terminal](assets/Main.png) | ![Selected chess piece with legal moves highlighted](assets/Move.png) |
+
+| Loading a saved game | Checkmate |
+|----------------------|-----------|
+| ![Saved game selection in the terminal](assets/Reload.png) | ![Terminal chess game ending in checkmate](assets/Checkmate.png) |
 
 ## Features
 
-- Fully interactive chess game in the terminal
-- Object-oriented design with individual classes for each piece
-- Move validation with rule enforcement:
-  - Castling
-  - En passant
-  - Pawn promotion
+- Interactive two-player chess game in the terminal
+- Object-oriented piece model with dedicated classes for kings, queens, rooks, bishops, knights, pawns, and blank squares
+- Legal move generation and validation for each piece
+- Rule support for castling, en passant, and pawn promotion
 - Check, checkmate, and stalemate detection
-- Save and resume games using file-based persistence
-- Colored and labeled terminal board
-- Threat detection and movement restrictions while in check
+- Legal move highlighting on the terminal board
+- Save and resume support using JSON files
+- RSpec test coverage for board logic, helpers, and chess mechanics
 
----
+## Tech Stack
+
+- Ruby
+- RSpec
+- Bundler
+- JSON file persistence
+- `colorize` for terminal board output
 
 ## Architecture
 
-### Core Classes
-
-| Class        | Responsibility |
-|--------------|----------------|
-| `Board`      | Manages the game grid, piece positions, threats, legal move validation |
-| `Piece & subclasses` | Encapsulates movement rules and state for each chess piece |
-| `Mechanics`  | Castling, En paasant and Promotion logic for the board |
-| `Game`       | Coordinates the turn flow, player interactions, and win/loss conditions |
-| `Helpers`    | Manages coordinate, tile and piece translation |
-| `FileManager`| Handles saving and loading game data |
-
----
+| Component | Responsibility |
+|-----------|----------------|
+| `Board` | Owns the board state, piece positions, legal move lookup, check state, and board rendering |
+| `Piece` subclasses | Encapsulate movement behavior and state for each chess piece |
+| `Mechanics` | Handles chess-specific mechanics such as castling, en passant, promotion, checkmate, and stalemate |
+| `Gameloop` | Coordinates player turns, prompts, move selection, saving, loading, and game completion |
+| `Helpers` | Converts between board coordinates, tile names, pieces, and symbols |
+| `FileManager` | Saves and loads JSON game state |
 
 ## Getting Started
 
 ### Prerequisites
 
 - Ruby 3.0 or higher
-- Bundler installed (optional, recommended)
+- Bundler
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/RicardPriv/Chess.git
-   cd Chess
-   ```
+```bash
+git clone https://github.com/RicardPriv/Chess.git
+cd Chess
+bundle install
+mkdir saves
+```
 
-2. Install dependencies:
-   ```bash
-   bundle install
-   ```
+The `saves/` folder is required for saving and loading games.
 
-3. Run the game:
-   ```bash
-   ruby main.rb
-   ```
+### Run the Game
 
-4. To run tests:
-   ```bash
-   rspec spec/
-   ```
+```bash
+ruby bin/main.rb
+```
 
----
+### Run the Tests
+
+```bash
+bundle exec rspec
+```
 
 ## How to Play
 
-- When the game launches, you'll be prompted to start a new game (Type: "new game") or load a saved one. To load a game, enter the exact name of a previously saved file (without extension).
-- On your turn, type the coordinates of the piece you wish to move (e.g., `E2`)
-- Then type the destination (e.g., `E4`)
-- At the destination prompt, you can:
-  - Type `b` to go back and reselect the piece
-- Possible saving by typing "save" at any prompt (besides promotion) after starting a game
-- Includes exit option to exit the program at any point by typing `e`
+When the game starts, choose `New Game` or enter the name of an existing saved game without the `.json` extension.
+
+During a turn:
+
+- Enter the coordinate of the piece to move, for example `E2`
+- Enter the destination coordinate, for example `E4`
+- Type `b` when choosing a destination to go back and select another piece
+- Type `save` during most prompts to save the current game and exit
+- Type `e` to exit
+
+The board highlights valid destinations for the selected piece before the destination prompt.
+
+## Project Notes
+
+This project focuses on modelling a rule-heavy domain without relying on a chess engine library. The implementation separates board state, piece movement, game flow, persistence, and helper logic so that each part can be tested and changed independently.

@@ -497,11 +497,10 @@ class Board
   # Possible colors: white, black, red, yellow
   def colorize_symbol!(symbol, color)
     case color
-    when :white then "\e[37m#{symbol}\e[0m" # White
-    when :black then "\e[30m#{symbol}\e[0m" # Black
-    when :red then "\e[31m#{symbol}\e[0m" # Red
-    when :yellow then "\e[33m#{symbol}\e[0m" # Yellow
-
+    when :white  then "\e[97m#{symbol}\e[0m" # Bright white
+    when :black  then "\e[96m#{symbol}\e[0m" # Bright cyan
+    when :red    then "\e[91m#{symbol}\e[0m" # Bright red
+    when :yellow then "\e[93m#{symbol}\e[0m" # Bright yellow
     else symbol
     end
   end
